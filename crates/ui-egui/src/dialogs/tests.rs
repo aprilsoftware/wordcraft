@@ -150,6 +150,42 @@ fn app_with(text: &str) -> WordApp {
     app
 }
 
+#[test]
+fn about_dialog_uses_april_writer_identity_and_provenance() {
+    use egui_kittest::kittest::Queryable;
+    let mut app = app_with("");
+    app.dialog = Some(Dialog::About { tab: 0 });
+    let mut fonts = false;
+    let mut h = egui_kittest::Harness::builder().with_size(vec2(900.0, 900.0)).build_ui_state(
+        move |ui, app: &mut WordApp| {
+            let ctx = ui.ctx().clone();
+            if fonts {
+                show(app, &ctx);
+            } else {
+                crate::theme::install_fonts_for(&ctx, false);
+                fonts = true;
+            }
+        },
+        app,
+    );
+    h.run_steps(4);
+    for label in [
+        "About April Writer",
+        "April Software logo",
+        "April Writer",
+        "April Software: aprilsoftware.com",
+        "Support: contact@aprilsoftware.com",
+        "Source code: github.com/aprilsoftware/wordcraft",
+        "April Writer is derived from WordCraft v0.13.2.",
+        "Original WordCraft source: github.com/storytold/wordcraft",
+    ] {
+        assert!(h.query_by_label(label).is_some(), "About shows {label:?}");
+    }
+    for old in ["getartcraft.com/apps/wordcraft", "Join us on Discord: discord.gg/artcraft"] {
+        assert!(h.query_by_label(old).is_none(), "About no longer shows {old:?}");
+    }
+}
+
 fn props(app: &WordApp) -> wordcraft_doc::props::ParaProps {
     app.session.doc.para_at(&app.session.sel.focus).map(|p| p.props.clone()).unwrap_or_default()
 }

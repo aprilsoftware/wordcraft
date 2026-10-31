@@ -1069,6 +1069,25 @@ fn paste_special_dialog(app: &mut WordApp, ui: &mut Ui, d: &mut Dialog) -> bool 
     ok || cancel
 }
 
+fn april_about_logo(ctx: &egui::Context) -> Option<egui::TextureHandle> {
+    let id = egui::Id::unique("april-about-logo");
+    if let Some(texture) = ctx.data(|data| data.get_temp::<egui::TextureHandle>(id)) {
+        return Some(texture);
+    }
+    static IMAGE: std::sync::OnceLock<Option<egui::ColorImage>> = std::sync::OnceLock::new();
+    let image = IMAGE
+        .get_or_init(|| {
+            let rgba = image::load_from_memory(include_bytes!("../../../../assets/april/logo.png")).ok()?.to_rgba8();
+            let size = [rgba.width() as usize, rgba.height() as usize];
+            Some(egui::ColorImage::from_rgba_unmultiplied(size, rgba.as_raw()))
+        })
+        .as_ref()?
+        .clone();
+    let texture = ctx.load_texture("april-about-logo", image, egui::TextureOptions::LINEAR);
+    ctx.data_mut(|data| data.insert_temp(id, texture.clone()));
+    Some(texture)
+}
+
 fn about_dialog(ui: &mut Ui, d: &mut Dialog) -> bool {
     let Dialog::About { tab } = d else {
         return false;
@@ -1083,16 +1102,28 @@ fn about_dialog(ui: &mut Ui, d: &mut Dialog) -> bool {
         1 => crate::credits::contributors_ui(ui),
         2 => crate::credits::models_ui(ui),
         _ => {
-            ui.label(egui::RichText::new(tl!("WordCraft")).font(semibold(22.0)));
+            if let Some(logo) = april_about_logo(ui.ctx()) {
+                ui.add(egui::Image::new(&logo).max_width(160.0).alt_text("April Software logo"));
+            }
+            ui.label(egui::RichText::new("April Writer").font(semibold(22.0)));
             let build = option_env!("WORDCRAFT_BUILD_SHA").map(|s| s.get(..8).unwrap_or(s)).unwrap_or(tl!("development build"));
             ui.label(crate::i18n::fmt(tl!("Version {version} ({build})"), &[("version", env!("CARGO_PKG_VERSION")), ("build", build)]));
-            ui.label(tl!("A free, open-source word processor written from scratch in Rust.\nPart of the Crafting Apps from the ArtCraft team."));
+            ui.label("A free, open-source word processor written in Rust.\nPublished by April Software S.A.");
             ui.add_space(6.0);
-            ui.hyperlink_to(tl!("getartcraft.com/apps/wordcraft"), "https://getartcraft.com/apps/wordcraft");
-            ui.hyperlink_to(tl!("Join us on Discord: discord.gg/artcraft"), "https://discord.gg/artcraft");
-            ui.hyperlink_to(tl!("Source code: github.com/storytold/wordcraft"), "https://github.com/storytold/wordcraft");
+            ui.hyperlink_to("April Software: aprilsoftware.com", "https://www.aprilsoftware.com");
+            ui.hyperlink_to("Support: contact@aprilsoftware.com", "mailto:contact@aprilsoftware.com");
+            ui.hyperlink_to("Source code: github.com/aprilsoftware/wordcraft", "https://github.com/aprilsoftware/wordcraft");
             ui.add_space(6.0);
-            ui.label(egui::RichText::new(tl!("MIT OR Apache-2.0. Copyright (c) 2026 ArtCraft Team and the WordCraft contributors.")).small().weak());
+            ui.label("April Writer is derived from WordCraft v0.13.2.");
+            ui.hyperlink_to("Original WordCraft source: github.com/storytold/wordcraft", "https://github.com/storytold/wordcraft");
+            ui.add_space(6.0);
+            ui.label(
+                egui::RichText::new(
+                    "MIT OR Apache-2.0. April Writer modifications copyright (c) 2026 April Software S.A. Original WordCraft copyrights retained.",
+                )
+                .small()
+                .weak(),
+            );
         }
     }
     let (ok, cancel) = buttons(ui, tl!("Close"));

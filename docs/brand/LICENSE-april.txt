@@ -1,0 +1,50 @@
+April Software brand assets: notice and terms
+
+The April Software name, AS badge and full logo (the "April Marks") are owned by
+April Software S.A. They are trademarks and are NOT open source. They are not
+covered by this repository's MIT OR Apache-2.0 licence. Nothing in those
+licences, NOTICE or any other file in this repository grants a general right to
+use the April Marks.
+
+Permission
+
+April Software S.A. grants a limited, non-exclusive, non-transferable,
+revocable, royalty-free permission to:
+
+  1. store, copy and redistribute the April Marks unmodified as part of copies
+     of this source repository; and
+  2. use the April Marks in April Writer, its documentation and official builds
+     distributed by or with the authorization of April Software S.A.
+
+For official April products, the supplied raster masters may be resized and
+converted to platform icon formats when required for packaging or display. The
+design and colours must not otherwise be changed.
+
+Conditions
+
+The permission holds only while all of the following are true:
+
+  - The marks are not redrawn, recoloured, stretched, rotated, animated,
+    outlined, given effects, or combined with another name, mark or artwork.
+  - They are used only to identify an official April Software product. They
+    must not suggest that April Software S.A. sponsors, endorses, certifies or
+    supports another product, service, fork, modified version, plug-in,
+    organization or person.
+  - The April Software name and marks do not appear in the name, icon, domain,
+    app-store listing, advertising or marketing of an unauthorized product.
+
+Forks and modified versions
+
+A fork kept only to propose changes back to an official April Software
+repository may retain the marks unchanged. Any other distributed or published
+modified version must remove the April Marks, or replace them with marks the
+distributor has permission to use, unless April Software S.A. gives prior
+written authorization. Plain-text factual statements about derivation remain
+permitted where applicable and must not imply sponsorship or endorsement.
+
+Everything else
+
+Any use not expressly permitted here requires prior written permission from
+April Software S.A. through https://www.aprilsoftware.com. Permission ends
+automatically for anyone who breaches these terms. All other rights are
+reserved.

@@ -284,11 +284,21 @@ fn services(file_dialog: file_dialogs::Hook, ctx: &egui::Context) -> Services {
 
 /// Window, Dock and taskbar icon.
 fn app_icon() -> Option<egui::IconData> {
-    #[cfg(target_os = "macos")]
-    let png: &[u8] = include_bytes!("../../../assets/app-icon/wordcraft-macos-512.png");
-    #[cfg(not(target_os = "macos"))]
-    let png: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.wordcraft.png");
+    let png: &[u8] = include_bytes!("../../../assets/april/badge_logo.png");
     eframe::icon_data::from_png_bytes(png).map_err(|e| log::warn!("app icon: {e}")).ok()
+}
+
+#[cfg(test)]
+mod app_icon_tests {
+    use super::app_icon;
+
+    #[test]
+    fn april_badge_is_the_decodable_runtime_icon() {
+        let icon = app_icon().expect("the approved April badge decodes");
+        assert_eq!((icon.width, icon.height), (1024, 1024));
+        assert_eq!(icon.rgba.get(3), Some(&0), "the top-left corner is transparent");
+        assert!(icon.rgba.chunks_exact(4).any(|pixel| pixel[3] != 0), "the badge has visible pixels");
+    }
 }
 
 const USAGE: &str = "\
@@ -431,7 +441,7 @@ fn main() -> eframe::Result {
     }
     let mut options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_title("WordCraft")
+            .with_title("April Writer")
             .with_app_id("ai.storyteller.wordcraft")
             .with_inner_size([1440.0, 920.0])
             .with_min_inner_size([760.0, 480.0])
@@ -476,7 +486,7 @@ fn main() -> eframe::Result {
     #[cfg(target_os = "macos")]
     let apple_events = &apple_events;
     eframe::run_native(
-        "WordCraft",
+        "April Writer",
         options,
         Box::new(move |cc| {
             // The system region picks the new document's paper, the units and the decimal
