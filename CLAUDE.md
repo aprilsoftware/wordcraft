@@ -1,13 +1,13 @@
-# WordCraft — instructions for agents
+# April Writer — instructions for agents
 
-WordCraft is a clean-room, open-source, Rust-native word processor targeting Microsoft Word parity — and going further on speed, openness and agent control. It runs natively on macOS, Windows, Linux and BSD, and on the web via WASM. Siblings with the same conventions: `../photocraft` (Photoshop), `../vectorcraft` (Illustrator), `../filmcraft` (Premiere), `../lightcraft` (Lightroom), `../pdfcraft` (Acrobat), `../effectcraft` (After Effects), `../designcraft` (InDesign). Shared rules and learnings: [`storytold/craftrules`](https://github.com/storytold/craftrules) (`../../craftrules`) — read its `AGENTS.md`.
+April Writer is April Software's clean-room, open-source, Rust-native word processor targeting Microsoft Word parity and going further on speed, openness and agent control. It runs natively on macOS, Windows, Linux and BSD, and on the web via WASM. The source is derived from WordCraft; internal Cargo packages, crates and paths intentionally retain `wordcraft` names, while customer-facing executables and profiles use April Writer identity. Links to [`storytold/craftrules`](https://github.com/storytold/craftrules) document inherited provenance; repository-local rules and April Office qualification policy govern current work.
 
 ## Start every session here
-1. Read `plan/STATUS.md` (current milestone, next task), then the task in `plan/execution-plan.md` and the relevant `plan/architecture.md` section. `plan/` is gitignored (local only); if it's missing, start from `ROADMAP.md`, `docs/gaps.md` and `docs/roadmap.md` (Current focus).
-2. Follow the autonomous operation protocol (`plan/execution-plan.md` §5). Don't stop to ask unless a decision is genuinely the owner's (licensing, publishing, pushing to new remotes, secrets).
+1. Read the applicable repository instructions and source files. Local `plan/` files and the inherited roadmap documents are planning evidence, not authorization or April Writer qualification.
+2. For development, follow the human-controlled lifecycle: investigate, propose one bounded increment, wait for approval, implement only that increment, validate and report, then stop. Do not commit, publish or begin another increment without separate approval.
 
 ## Never crash
-People trust WordCraft with their writing; a crash loses their work. **This outranks feature work**: never ship a feature through a panic path, and fix a crash before building on top of it. Standard: [`craftrules/standards/never-crash.md`](https://github.com/storytold/craftrules/blob/main/standards/never-crash.md).
+People trust April Writer with their writing; a crash loses their work. **This outranks feature work**: never ship a feature through a panic path, and fix a crash before building on top of it. Standard: [`craftrules/standards/never-crash.md`](https://github.com/storytold/craftrules/blob/main/standards/never-crash.md).
 - **No panics in non-test code:** no `unwrap()`, `expect()`, `panic!`, `unreachable!`, `todo!`, `unimplemented!`; no `unsafe` (`unsafe_code = "forbid"`).
 - **Errors are `Result<T, E>`** through the crate's error type and `?`. An unfinished feature returns an error or is disabled; it never panics.
 - **Input-derived numbers are hostile** (files, commands, MCP/control params): `get()` instead of `[i]`, slice strings only at char boundaries, checked/saturating arithmetic, clamp sizes, cap allocations, bound recursion.
@@ -46,18 +46,18 @@ People trust WordCraft with their writing; a crash loses their work. **This outr
 - **Rust only** (no handwritten JS/TS). **Never break wasm** (`cargo xtask wasm`).
 
 ## Quality gates
-Before every commit: `cargo xtask ci` (fmt, clippy -D warnings, tests, assets, layers, wasm). Commit after every arc of work that builds, with a task id in the message (`M2.1: line spacing dialog`).
+Before an approved commit, run the applicable parts of `cargo xtask ci` (fmt, clippy -D warnings, tests, assets, layers, wasm) and record any platform or environment checks that require external qualification. Create a commit only when it is separately approved.
 
 ## Typing behaves like Word
 Typing, Enter, Backspace, Tab, lists, AutoCorrect and AutoFormat follow Word's observed behaviour in [`docs/typing-parity.md`](docs/typing-parity.md), pinned by `crates/engine/src/tests/typing.rs` (keys go through the same commands as the keyboard). Change behaviour, doc and tests together; a typing fix lands with a test there. Compare headlessly (`ui_shot`); don't drive GUIs with keystrokes on the shared machine.
 
 ## Running and looking at the app
-- `cargo run --release -p wordcraft -- --sample --control 7981` (sample document + control channel).
-- Drive it with JSON lines on `127.0.0.1:7981`, each with the window's key from `~/.config/wordcraft/control-key.local-7981` (macOS: `~/Library/Application Support/WordCraft/`), e.g. `{"id":1,"key":"…","method":"engine.execute","params":{"command":"text.insert","params":{"text":"Hello"}}}` then `{"id":2,"key":"…","method":"ui.screenshot","params":{"path":"/tmp/shot.png"}}`. Methods: `crates/ui-egui/src/control.rs`; docs: `docs/control-protocol.md` (Keys).
-- **Headless window screenshots** (no focus stealing, works with a locked screen): `cargo run --release -p wordcraft-ui-egui --example ui_shot -- script.jsonl` (see the example's header).
+- `cargo run --release -p wordcraft --bin aprilwriter -- --sample --control 7981` (internal package, April Writer desktop binary, sample document and control channel).
+- Drive it with JSON lines on `127.0.0.1:7981`, each with the window's key from `~/.config/aprilwriter/control-key.local-7981` (macOS: `~/Library/Application Support/April Writer/`), e.g. `{"id":1,"key":"…","method":"engine.execute","params":{"command":"text.insert","params":{"text":"Hello"}}}` then `{"id":2,"key":"…","method":"ui.screenshot","params":{"path":"/tmp/shot.png"}}`. `APRILWRITER_PROFILE_DIR` selects an isolated profile. Methods: `crates/ui-egui/src/control.rs`; docs: `docs/control-protocol.md` (Keys).
+- **Headless window screenshots** (no focus stealing, works with a locked screen): `cargo run --release -p wordcraft-ui-egui --example ui_shot -- script.jsonl` (internal package; see the example's header).
 - **For UI work, look at the result** (screenshot, read the PNG) and compare with Word side by side.
-- CLI: `wordcraft-cli convert in.docx out.pdf`, `wordcraft-cli run --template sample --cmd 'select.text={"text":"Studio"}' --cmd format.bold --save out.docx`, `wordcraft-cli commands`, `wordcraft-cli parity`.
-- MCP: `wordcraft-cli mcp` (headless) or `wordcraft-cli mcp --connect 127.0.0.1:7981` (drives the running app). See `docs/mcp.md`.
+- CLI: `aprilwriter-cli convert in.docx out.pdf`, `aprilwriter-cli run --template sample --cmd 'select.text={"text":"Studio"}' --cmd format.bold --save out.docx`, `aprilwriter-cli commands`, `aprilwriter-cli parity`.
+- MCP: `aprilwriter-cli mcp` (headless) or `aprilwriter-cli mcp --connect 127.0.0.1:7981` (drives the running app). See `docs/mcp.md`.
 - Shell gotcha: `mv`/`cp` may be aliased interactive — use `/bin/mv -f` / `/bin/cp -f`.
 - Parallel agents: separate `CARGO_TARGET_DIR` per agent; edit only the crates you own; delete your target dir when done (disk).
 
@@ -65,6 +65,7 @@ Typing, Enter, Backspace, Tab, lists, AutoCorrect and AutoFormat follow Word's o
 Progress docs follow [`craftrules/standards/progress-docs.md`](https://github.com/storytold/craftrules/blob/main/standards/progress-docs.md): `ROADMAP.md` (stage, headline numbers, progress log), `docs/target-app-parity.md` (the assessment), `docs/gaps.md` (ranked work list), `docs/roadmap.md` (milestones, Current focus), `docs/architecture.md`, and the parity checklists `docs/file-format-parity.md`, `docs/layout-parity.md`, `docs/typing-parity.md`, `docs/ui-parity.md`, `docs/hardware-parity.md`, `docs/localization-parity.md`. When work lands, update the gap, the parity doc and the progress log, and bump each touched doc's status line and revision history.
 
 ## CI workflows
-- Workflows in `.github/workflows/` call the shared workflows in [`storytold/craft-common-actions`](https://github.com/storytold/craft-common-actions) at `@main`, with their inputs and secrets. No other jobs: if no shared workflow does what's needed, it doesn't go here.
-- Don't add or change CI in a feature or fix PR. If the existing workflows can't build or test a change, link an existing craft-common-actions issue or PR, or open a new issue, or a PR only for a small fix that is safe for every app and does not increase CI time.
-- Some workflow files here still run their own jobs. Don't add to them. Moving a job into craft-common-actions is its own task, never part of another PR, and the job stays here until a shared workflow runs it.
+- April-controlled workflows in `.github/workflows/` target `april/main`, use read-only permissions and keep their build logic in this repository.
+- Pin every referenced action by immutable commit SHA. Never delegate an April build or publication decision to a mutable Storytold workflow or branch.
+- This source repository validates source and package inputs; April Office owns exact-commit qualification, signing, assembly and publication.
+- Workflow changes are separate approved increments. Do not add unrelated CI work to a feature or fix.

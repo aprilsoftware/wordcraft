@@ -10,7 +10,7 @@
 //! `zenity`; with neither (a minimal Wayland compositor such as labwc with only
 //! xdg-desktop-portal-wlr, #576) it answers "cancelled" and nothing ever shows. So the waiting
 //! thread first checks that one of them is there and otherwise answers with an error, and the app
-//! shows its built-in file browser. `WORDCRAFT_FILE_DIALOG=builtin` always uses the built-in one.
+//! shows its built-in file browser. `APRILWRITER_FILE_DIALOG=builtin` always uses the built-in one.
 //!
 //! On Linux and the BSDs, rfd reports a portal that failed to show its dialog as a cancel (#2999).
 //! There a cancel quicker than anyone could dismiss a dialog is taken as that failure: the dialog
@@ -149,8 +149,8 @@ fn open_filters(mut d: rfd::AsyncFileDialog, purpose: &str) -> rfd::AsyncFileDia
 
 /// Why no system file dialog can be shown, if it can't (#576); run off the UI thread.
 fn no_system_dialog() -> Option<String> {
-    if std::env::var_os("WORDCRAFT_FILE_DIALOG").is_some_and(|v| v == "builtin") {
-        return Some("WORDCRAFT_FILE_DIALOG=builtin".into());
+    if std::env::var_os("APRILWRITER_FILE_DIALOG").is_some_and(|v| v == "builtin") {
+        return Some("APRILWRITER_FILE_DIALOG=builtin".into());
     }
     portal_or_zenity_missing()
 }

@@ -1077,7 +1077,7 @@ fn april_about_logo(ctx: &egui::Context) -> Option<egui::TextureHandle> {
     static IMAGE: std::sync::OnceLock<Option<egui::ColorImage>> = std::sync::OnceLock::new();
     let image = IMAGE
         .get_or_init(|| {
-            let rgba = image::load_from_memory(include_bytes!("../../../../assets/april/logo.png")).ok()?.to_rgba8();
+            let rgba = image::load_from_memory(include_bytes!("../../../../assets/april/logo-header.webp")).ok()?.to_rgba8();
             let size = [rgba.width() as usize, rgba.height() as usize];
             Some(egui::ColorImage::from_rgba_unmultiplied(size, rgba.as_raw()))
         })
@@ -1103,24 +1103,24 @@ fn about_dialog(ui: &mut Ui, d: &mut Dialog) -> bool {
         2 => crate::credits::models_ui(ui),
         _ => {
             if let Some(logo) = april_about_logo(ui.ctx()) {
-                ui.add(egui::Image::new(&logo).max_width(160.0).alt_text("April Software logo"));
+                ui.add(egui::Image::new(&logo).max_width(320.0).alt_text("April Software logo"));
             }
-            ui.label(egui::RichText::new("April Writer").font(semibold(22.0)));
-            let build = option_env!("WORDCRAFT_BUILD_SHA").map(|s| s.get(..8).unwrap_or(s)).unwrap_or(tl!("development build"));
+            ui.label(egui::RichText::new(tl!("April Writer")).font(semibold(22.0)));
+            let build = option_env!("APRILWRITER_BUILD_SHA").map(|s| s.get(..8).unwrap_or(s)).unwrap_or(tl!("development build"));
             ui.label(crate::i18n::fmt(tl!("Version {version} ({build})"), &[("version", env!("CARGO_PKG_VERSION")), ("build", build)]));
-            ui.label("A free, open-source word processor written in Rust.\nPublished by April Software S.A.");
+            ui.label(tl!("A free, open-source word processor written in Rust.\nPublished by April Software S.A."));
             ui.add_space(6.0);
-            ui.hyperlink_to("April Software: aprilsoftware.com", "https://www.aprilsoftware.com");
-            ui.hyperlink_to("Support: contact@aprilsoftware.com", "mailto:contact@aprilsoftware.com");
-            ui.hyperlink_to("Source code: github.com/aprilsoftware/wordcraft", "https://github.com/aprilsoftware/wordcraft");
+            ui.hyperlink_to(tl!("April Software: aprilsoftware.com"), "https://www.aprilsoftware.com");
+            ui.hyperlink_to(tl!("Support: contact@aprilsoftware.com"), "mailto:contact@aprilsoftware.com");
+            ui.hyperlink_to(tl!("Source code: github.com/aprilsoftware/wordcraft"), "https://github.com/aprilsoftware/wordcraft");
             ui.add_space(6.0);
-            ui.label("April Writer is derived from WordCraft v0.13.2.");
-            ui.hyperlink_to("Original WordCraft source: github.com/storytold/wordcraft", "https://github.com/storytold/wordcraft");
+            ui.label(tl!("April Writer is derived from WordCraft v0.13.2."));
+            ui.hyperlink_to(tl!("Original WordCraft source: github.com/storytold/wordcraft"), "https://github.com/storytold/wordcraft");
             ui.add_space(6.0);
             ui.label(
-                egui::RichText::new(
-                    "MIT OR Apache-2.0. April Writer modifications copyright (c) 2026 April Software S.A. Original WordCraft copyrights retained.",
-                )
+                egui::RichText::new(tl!(
+                    "MIT OR Apache-2.0. April Writer modifications copyright (c) 2026 April Software S.A. Original WordCraft copyrights retained."
+                ))
                 .small()
                 .weak(),
             );
@@ -1296,7 +1296,7 @@ fn encrypt_password_dialog(app: &mut WordApp, ui: &mut Ui, d: &mut Dialog) -> bo
     });
     ui.label(
         egui::RichText::new(tl!(
-            "Keep the password somewhere safe: without it nobody, WordCraft included, can open the document. Leave both boxes empty to remove the password."
+            "Keep the password somewhere safe: without it nobody, April Writer included, can open the document. Leave both boxes empty to remove the password."
         ))
         .small()
         .weak(),

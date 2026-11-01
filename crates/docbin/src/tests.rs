@@ -708,7 +708,7 @@ fn first_line_indent_chars_and_exact_line_spacing() {
 /// Local corpus (gitignored `plan/word/fixtures`): real files must open with text and styles.
 #[test]
 fn corpus_files_open() {
-    let Some(dir) = std::env::var_os("WORDCRAFT_DOCBIN_FIXTURES") else { return };
+    let Some(dir) = std::env::var_os("APRILWRITER_DOCBIN_FIXTURES") else { return };
     let mut checked = 0;
     if let Ok(entries) = std::fs::read_dir(&dir) {
         for e in entries.flatten() {

@@ -4,22 +4,22 @@
 use std::path::{Path, PathBuf};
 
 /// The app's settings folder (preferences, logs, key files): macOS
-/// `~/Library/Application Support/WordCraft`, Windows `%APPDATA%\WordCraft`, otherwise
-/// `$XDG_CONFIG_HOME/wordcraft` or `~/.config/wordcraft`.
-/// `WORDCRAFT_PROFILE_DIR` overrides the entire folder for isolated runs.
+/// `~/Library/Application Support/April Writer`, Windows `%APPDATA%\April Writer`, otherwise
+/// `$XDG_CONFIG_HOME/aprilwriter` or `~/.config/aprilwriter`.
+/// `APRILWRITER_PROFILE_DIR` overrides the entire folder for isolated runs.
 pub fn settings_dir() -> Option<PathBuf> {
-    if let Some(path) = std::env::var_os("WORDCRAFT_PROFILE_DIR").filter(|p| !p.is_empty()) {
+    if let Some(path) = std::env::var_os("APRILWRITER_PROFILE_DIR").filter(|p| !p.is_empty()) {
         return Some(PathBuf::from(path));
     }
     if cfg!(target_os = "macos") {
-        std::env::var_os("HOME").map(|h| PathBuf::from(h).join("Library/Application Support/WordCraft"))
+        std::env::var_os("HOME").map(|h| PathBuf::from(h).join("Library/Application Support/April Writer"))
     } else if cfg!(windows) {
-        std::env::var_os("APPDATA").map(|a| PathBuf::from(a).join("WordCraft"))
+        std::env::var_os("APPDATA").map(|a| PathBuf::from(a).join("April Writer"))
     } else {
         std::env::var_os("XDG_CONFIG_HOME")
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))
-            .map(|c| c.join("wordcraft"))
+            .map(|c| c.join("aprilwriter"))
     }
 }
 
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn key_file_per_instance() {
-        let dir = Path::new("/settings/wordcraft");
+        let dir = Path::new("/settings/aprilwriter");
         assert_eq!(key_path_for(dir, Some("1234"), 7981), dir.join("control-key.1234"));
         assert_eq!(key_path_for(dir, None, 7981), dir.join("control-key.local-7981"));
         assert_eq!(key_path_for(dir, None, 7982), dir.join("control-key.local-7982"));
@@ -81,7 +81,7 @@ mod tests {
     fn settings_dir_is_the_apps_folder() {
         if let Some(d) = settings_dir() {
             let name = d.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            assert!(name == "wordcraft" || name == "WordCraft", "{}", d.display());
+            assert!(name == "aprilwriter" || name == "April Writer", "{}", d.display());
         }
     }
 }

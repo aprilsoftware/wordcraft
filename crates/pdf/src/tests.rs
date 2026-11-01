@@ -2036,7 +2036,7 @@ fn metadata_language_overrides_and_fallbacks_are_preserved() {
         let pdf = hayro_syntax::Pdf::new(bytes.clone()).unwrap();
         let catalog = pdf.xref().get::<hayro_syntax::object::Dict<'_>>(pdf.xref().root_id()).unwrap();
         let actual_language = catalog.get::<hayro_syntax::object::String<'_>>(b"Lang");
-        for value in ["Override title", "Override author", "Description fallback", "first, second, third", "D:20240506070809"] {
+        for value in ["April Writer", "Override title", "Override author", "Description fallback", "first, second, third", "D:20240506070809"] {
             assert!(raw.contains(value), "missing {value}");
         }
         if let Some(language) = language.filter(|s| !s.is_empty() && s.is_ascii()) {

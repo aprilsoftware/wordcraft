@@ -54,6 +54,14 @@ fn native_window_titles_use_april_writer_identity() {
     assert_eq!(windows::title("Report", true), "Report • - April Writer");
 }
 
+#[test]
+fn support_uses_the_approved_april_contact() {
+    let mut app = app();
+    app.run("ui.support", json!({})).unwrap();
+    assert_eq!(app.canvas.open_url.as_deref(), Some("mailto:contact@aprilsoftware.com"));
+    assert!(app.run("ui.discord", json!({})).is_err(), "the former community command is gone");
+}
+
 /// #3634: a NUL in the document title never reaches the window title (X11 needs a C string)
 /// or the suggested file name.
 #[test]
@@ -656,7 +664,7 @@ fn start_screen_shows_file_home_and_esc_leaves_no_document() {
     for id in ["format.bold", "text.insert", "file.save", "file.saveAs", "file.print", "edit.paste", "insert.table", "ui.print"] {
         assert!(!widgets::enabled(a, id), "{id} is off with no document");
     }
-    for id in ["file.new", "file.open", "ui.backstage", "ui.tab", "ui.discord", "file.options", "ui.theme"] {
+    for id in ["file.new", "file.open", "ui.backstage", "ui.tab", "ui.support", "file.options", "ui.theme"] {
         assert!(widgets::enabled(a, id), "{id} works with no document");
     }
     assert!(!chrome::qat_enabled(a, "file.save"));
@@ -3294,7 +3302,7 @@ fn ui_print_needs_the_hosts_print_hook() {
     assert!(a.status_msg.as_ref().is_some_and(|(m, _)| m.contains("blocked by the browser")), "the status bar says why");
 }
 
-/// Make WordCraft the default… (#295) goes through the host's hook and reports the outcome in
+/// Make April Writer the default… (#295) goes through the host's hook and reports the outcome in
 /// the status bar; without a hook (web, macOS) it's an error and nothing runs.
 #[test]
 fn make_default_app_needs_the_hosts_hook_and_reports_the_outcome() {
@@ -3513,12 +3521,12 @@ fn the_print_preview_fills_the_pane_zooms_and_scrolls_both_ways() {
     assert!((again.height() - fit.height()).abs() < 1.0, "One Page fits the page again: {fit:?} vs {again:?}");
 }
 
-/// File › Options shows Make WordCraft the default… only when the host can do it (#295), and
+/// File › Options shows Make April Writer the default… only when the host can do it (#295), and
 /// the button runs the host's hook.
 #[test]
 fn the_default_app_button_shows_only_with_the_hosts_hook() {
     use egui_kittest::kittest::Queryable;
-    const LABEL: &str = "Make WordCraft the default for Word documents…";
+    const LABEL: &str = "Make April Writer the default for Word documents…";
     for hook in [false, true] {
         let calls = std::rc::Rc::new(std::cell::Cell::new(0));
         let mut a = app();
@@ -3539,7 +3547,7 @@ fn the_default_app_button_shows_only_with_the_hosts_hook() {
             a,
         );
         h.run_steps(4);
-        assert!(h.query_by_label("Show the community button in the title bar").is_some(), "hook {hook}: the Options page rendered");
+        assert!(h.query_by_label("Show the mini toolbar when text is selected").is_some(), "hook {hook}: the Options page rendered");
         assert_eq!(h.query_by_label(LABEL).is_some(), hook, "hook {hook}: the button");
         if hook {
             h.get_by_label(LABEL).click();
@@ -5213,6 +5221,16 @@ fn prefs_without_user_name_keep_default() {
     assert_eq!(a.session.author, default);
     assert_eq!(a.ui.theme, theme::Appearance::Dark);
     assert!(!a.ui.backstage);
+}
+
+#[test]
+fn experimental_default_user_migrates_but_custom_names_do_not() {
+    let mut app = app();
+    assert_eq!(app.session.author, "April Writer User");
+    app.apply_prefs(serde_json::from_str(r#"{"author":"WordCraft User"}"#).unwrap());
+    assert_eq!(app.session.author, "April Writer User");
+    app.apply_prefs(serde_json::from_str(r#"{"author":"Ada Lovelace"}"#).unwrap());
+    assert_eq!(app.session.author, "Ada Lovelace");
 }
 
 /// #115: the old dark-mode switch migrates to Light/Dark; a saved System stays System, and the

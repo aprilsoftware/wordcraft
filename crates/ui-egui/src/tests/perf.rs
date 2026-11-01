@@ -47,11 +47,11 @@ fn wheel(h: &mut egui_kittest::Harness<'static, WordApp>, dy: f32) {
 }
 
 /// `cargo test -p wordcraft-ui-egui --release big_table_scroll_bench -- --ignored --nocapture`
-/// (`WORDCRAFT_BENCH_DOCX=path` times that file instead of the synthetic table).
+/// (`APRILWRITER_BENCH_DOCX=path` times that file instead of the synthetic table).
 #[test]
 #[ignore]
 fn big_table_scroll_bench() {
-    let doc = match std::env::var("WORDCRAFT_BENCH_DOCX") {
+    let doc = match std::env::var("APRILWRITER_BENCH_DOCX") {
         Ok(p) => wordcraft_engine::io::open_path(std::path::Path::new(&p)).unwrap(),
         Err(_) => big_table_doc(2000, 8),
     };

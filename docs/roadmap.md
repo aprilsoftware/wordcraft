@@ -1,4 +1,6 @@
-# WordCraft roadmap: milestones and what's next
+# April Writer roadmap: milestones and what's next
+
+> **April Writer status:** This inherited plan records WordCraft upstream evidence through 2026-10-29. Its readiness, release and platform results are planning inputs, not April Writer qualification. April Office owns exact-commit qualification and publication.
 
 > **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-29 · **Change:** trivial (HTML import keeps preformatted lines with CR, CRLF or LF input newlines (#4810); numeric character references retain their separate meaning; readiness estimates unchanged; previously trivial: egui 0.37 migration: 27 interface languages remain pinned by `craft-i18n.rev` (9205108…), and the input-method handling has synthetic regressions while managed CI passed and native acceptance (#155–#164) remains open; previously trivial: M6: Manage Sources imports Word's `Sources.xml`, #2640; previously minor: Czech proofing review fixes; previously minor: Portuguese proofing; previously minor: Polish interface and Polish proofing; previously trivial: M7: formatting revisions landed, #41; previously trivial: M5: Draw Table and Eraser landed, #303; previously minor: beta distance restated: ~15 points, ~150–230 h; previously: alpha gate checked: six core workflows pass; previously major: milestones moved here from ROADMAP.md; Current focus set from the re-measured gaps) · **Target:** Microsoft Word (Microsoft 365) for Mac 16.113.4
 
@@ -8,9 +10,10 @@ Opus 5.5 agent wall-clock.
 
 ## Current focus (toward beta, ~150–230 h)
 
-1. **Merge or close the ~45 open PRs** before starting overlapping work: many close catalog gaps
-   (Clipboard pane #264, Manage Styles #270, Group #267), fix field bugs (Hebrew RTL #20, IME
-   fixes #155–#164) or add languages (nb, nn, he). Owner review needed.
+1. **Review deliberately selected upstream changes** before starting overlapping work: linked PRs
+   may close catalog gaps (Clipboard pane #264, Manage Styles #270, Group #267), fix field bugs
+   (Hebrew RTL #20, IME fixes #155–#164) or add languages (nb, nn, he). Do not merge or follow them
+   automatically; April Office owns selection and qualification. Owner review needed.
 2. **DOCX real-world corpus** (gap #1, 30–50 h): collect openly licensed real-world .docx files,
    open/render/round-trip them, compare with Word locally, fix what breaks. Omitted/empty
    paragraph defaults now have synthetic save/reopen coverage; the corpus gate remains open.
@@ -40,8 +43,9 @@ every day, checked end to end on the main platform (macOS desktop), including sa
 | References for reports and papers: TOC, footnotes, citations and bibliography, captions | yes | Updatable TOC field (#52), notes, APA/MLA/Chicago/IEEE, Zotero (#189); long footnotes don't continue (gap #4) | 0 |
 | Share or print: export PDF, print | partial (not blocking) | PDF export solid (krilla); desktop printing goes through a PDF, no native print dialog (gap #6) | 0 (beta work: 6–10) |
 
-**Result: passes.** Every core workflow completes on macOS and the work saves and reopens; the
-partial rows are fidelity gaps (beta work), not broken workflows. WordCraft stays **alpha**.
+**Inherited upstream result: passes.** The WordCraft baseline reports that every core workflow
+completes on macOS and the work saves and reopens; the partial rows are fidelity gaps (beta work),
+not broken workflows. April Writer remains under April Office qualification.
 
 ## Milestones
 

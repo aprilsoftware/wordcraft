@@ -26,7 +26,7 @@ pub trait Backend {
 /// Looks up the control key for an address (`HOST:PORT`).
 type KeyFinder = Box<dyn Fn(&str) -> Result<String, String> + Send>;
 
-/// A running WordCraft app, reached through its loopback control port.
+/// A running April Writer app, reached through its loopback control port.
 pub struct Remote {
     addr: String,
     conn: Option<(BufReader<TcpStream>, TcpStream)>,
@@ -40,26 +40,26 @@ pub struct Remote {
     find_key: KeyFinder,
 }
 
-/// The control key: `env` (`WORDCRAFT_CONTROL_KEY`) when set, else the app's key file for
+/// The control key: `env` (`APRILWRITER_CONTROL_KEY`) when set, else the app's key file for
 /// `port` in `settings`. The error says where it looked.
 fn lookup_key(env: Option<String>, settings: Option<&Path>, port: Option<u16>) -> Result<String, String> {
     if let Some(k) = env.map(|k| k.trim().to_string()).filter(|k| !k.is_empty()) {
         return Ok(k);
     }
     let (Some(settings), Some(port)) = (settings, port) else {
-        return Err("no control key: set WORDCRAFT_CONTROL_KEY (no settings folder or port to find the key file)".to_string());
+        return Err("no control key: set APRILWRITER_CONTROL_KEY (no settings folder or port to find the key file)".to_string());
     };
     let path = wordcraft_control_key::key_path(settings, port);
     match std::fs::read_to_string(&path).map(|k| k.trim().to_string()) {
         Ok(k) if !k.is_empty() => Ok(k),
-        _ => Err(format!("no control key: set WORDCRAFT_CONTROL_KEY, or start the app with --control {port} (it writes {})", path.display())),
+        _ => Err(format!("no control key: set APRILWRITER_CONTROL_KEY, or start the app with --control {port} (it writes {})", path.display())),
     }
 }
 
 /// The key for the app at `addr`, from the environment or the app's key file.
 fn find_key(addr: &str) -> Result<String, String> {
     let port = addr.rsplit_once(':').and_then(|(_, p)| p.parse().ok());
-    lookup_key(std::env::var("WORDCRAFT_CONTROL_KEY").ok(), wordcraft_control_key::settings_dir().as_deref(), port)
+    lookup_key(std::env::var("APRILWRITER_CONTROL_KEY").ok(), wordcraft_control_key::settings_dir().as_deref(), port)
 }
 
 /// The only address the app's control server binds (`apps/wordcraft/src/control_server.rs`).
@@ -203,7 +203,7 @@ impl Remote {
     fn exchange(&mut self, id: u64, method: &str, params: &Value) -> Result<Value, String> {
         let unreachable = |addr: &str, e: std::io::Error, connected: bool| {
             let retry = if connected { String::new() } else { "; will retry on each call".to_string() };
-            format!("WordCraft app at {addr} is not reachable: {e}{retry}")
+            format!("April Writer app at {addr} is not reachable: {e}{retry}")
         };
         let mut first = true;
         let reply = loop {
@@ -254,7 +254,7 @@ impl Backend for Remote {
             Err(self.key_warning().map_or_else(
                 || {
                     format!(
-                        "unauthorized: the WordCraft app at {} refused the control key (from WORDCRAFT_CONTROL_KEY or the app's key file)",
+                        "unauthorized: the April Writer app at {} refused the control key (from APRILWRITER_CONTROL_KEY or the app's key file)",
                         self.addr
                     )
                 },
@@ -271,9 +271,9 @@ impl Backend for Remote {
 
     fn describe(&self) -> String {
         if self.connected {
-            format!("connected to the WordCraft app at {}", self.addr)
+            format!("connected to the April Writer app at {}", self.addr)
         } else {
-            format!("will connect to the WordCraft app at {} when it opens", self.addr)
+            format!("will connect to the April Writer app at {} when it opens", self.addr)
         }
     }
 }
@@ -295,7 +295,7 @@ mod tests {
         let path = wordcraft_control_key::key_path(&dir, 7981);
         // Neither: the error names the variable and the file it looked for.
         let e = lookup_key(None, Some(&dir), Some(7981)).unwrap_err();
-        assert!(e.contains("WORDCRAFT_CONTROL_KEY") && e.contains(&path.display().to_string()), "{e}");
+        assert!(e.contains("APRILWRITER_CONTROL_KEY") && e.contains(&path.display().to_string()), "{e}");
         // The key file, trimmed; an empty variable does not count.
         std::fs::write(&path, "  file-key\n").unwrap();
         assert_eq!(lookup_key(None, Some(&dir), Some(7981)).unwrap(), "file-key");

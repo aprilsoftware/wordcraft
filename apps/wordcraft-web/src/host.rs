@@ -1,13 +1,13 @@
 //! The `postMessage` bridge to a same-origin parent page (`?host=parent`), for pages that embed
-//! WordCraft in an `<iframe>` and keep its files (a Nextcloud app, a personal file server). The
+//! April Writer in an `<iframe>` and keep its files (a Nextcloud app, a personal file server). The
 //! same messages as GridCraft's and PdfCraft's bridges; each is a plain object with a `type`:
 //!
-//! - `wordcraft:ready` (to the parent): `{ version }`, sent once the app is running and
+//! - `aprilwriter:ready` (to the parent): `{ version }`, sent once the app is running and
 //!   listening; send a file now.
-//! - `wordcraft:open` (from the parent): `{ name, bytes }`, bytes an `ArrayBuffer` or
+//! - `aprilwriter:open` (from the parent): `{ name, bytes }`, bytes an `ArrayBuffer` or
 //!   `Uint8Array`. It opens like a document picked with File › Open or dropped on the window.
-//! - `wordcraft:save` (to the parent): `{ name, saveAs, bytes }` (a transferred `ArrayBuffer`) for
-//!   every file WordCraft would otherwise download. The parent stores it and reports failures
+//! - `aprilwriter:save` (to the parent): `{ name, saveAs, bytes }` (a transferred `ArrayBuffer`) for
+//!   every file April Writer would otherwise download. The parent stores it and reports failures
 //!   itself. `saveAs` says whether the file becomes the document's file:
 //!   - Save: `false`. It writes the opened file under its own name and format, as the desktop
 //!     app does. A name the parent never sent (an untitled document, an imported .doc saved as
@@ -17,8 +17,8 @@
 //!     is now that file; the next Save sends its name with `false`.
 //!   - Save As or Export to a format that doesn't (PDF, Markdown, plain text), Export as PDF and
 //!     Export Page as PNG: `false`. They are copies; the document's file stays the same.
-//! - `wordcraft:dirty` (to the parent): `{ dirty }` whenever unsaved changes appear or go away.
-//! - `wordcraft:failed` (to the parent): `{ error }` when the app couldn't start.
+//! - `aprilwriter:dirty` (to the parent): `{ dirty }` whenever unsaved changes appear or go away.
+//! - `aprilwriter:failed` (to the parent): `{ error }` when the app couldn't start.
 //!
 //! Only the parent window on the page's own origin is heard or answered. In host mode the parent
 //! guards leaving the page, and `?author=` names the user for comments and tracked changes.
@@ -77,7 +77,7 @@ impl Bridge {
         let bridge = self.clone();
         let reported: Rc<Cell<Option<bool>>> = Rc::default();
         services.on_dirty = Some(Box::new(move |dirty: bool| {
-            if reported.get() != Some(dirty) && bridge.send(&[("type", "wordcraft:dirty".into()), ("dirty", dirty.into())]) {
+            if reported.get() != Some(dirty) && bridge.send(&[("type", "aprilwriter:dirty".into()), ("dirty", dirty.into())]) {
                 reported.set(Some(dirty));
             }
         }));
@@ -92,19 +92,19 @@ impl Bridge {
     }
 
     pub fn post_ready(&self) {
-        self.send(&[("type", "wordcraft:ready".into()), ("version", env!("CARGO_PKG_VERSION").into())]);
+        self.send(&[("type", "aprilwriter:ready".into()), ("version", env!("CARGO_PKG_VERSION").into())]);
     }
 
     /// The app couldn't start (no WebGPU or WebGL2, for example): let the parent say so.
     pub fn post_failed(&self, error: &str) {
-        self.send(&[("type", "wordcraft:failed".into()), ("error", error.into())]);
+        self.send(&[("type", "aprilwriter:failed".into()), ("error", error.into())]);
     }
 
     fn post_save(&self, path: &str, bytes: &[u8], save_as: bool) -> Result<(), String> {
         let name = std::path::Path::new(path).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| path.to_string());
         let buffer = js_sys::Uint8Array::from(bytes).buffer();
         let message = message(&[
-            ("type", "wordcraft:save".into()),
+            ("type", "aprilwriter:save".into()),
             ("name", name.as_str().into()),
             ("saveAs", save_as.into()),
             ("bytes", buffer.clone().into()),
@@ -115,7 +115,7 @@ impl Bridge {
             .map_err(|e| e.as_string().unwrap_or_else(|| format!("{e:?}")))
     }
 
-    /// Hear `wordcraft:open` from the parent and queue the file like a dropped one.
+    /// Hear `aprilwriter:open` from the parent and queue the file like a dropped one.
     fn listen(&self, inbox: Inbox, ctx: egui::Context) {
         let parent = self.parent.clone();
         let origin = self.origin.clone();
@@ -124,7 +124,7 @@ impl Bridge {
                 return;
             }
             let data = event.data();
-            if string(&data, "type").as_deref() != Some("wordcraft:open") {
+            if string(&data, "type").as_deref() != Some("aprilwriter:open") {
                 return;
             }
             let name = string(&data, "name").filter(|n| !n.trim().is_empty()).unwrap_or_else(|| "Document.docx".to_string());

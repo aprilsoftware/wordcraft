@@ -1,8 +1,8 @@
-# WordCraft architecture
+# April Writer architecture
 
 > **Last reviewed:** 2026-10-28 · **Last updated:** 2026-10-28 · **Change:** major (crate and layer inventory, source counts, proofing languages and module boundaries re-measured from this checkout; previously minor: `proof` is per language: English and Polish; previously major: first committed version; `plan/architecture.md` is local-only) · **Target:** Microsoft Word (Microsoft 365) for Mac 16.113.4
 
-How WordCraft is built today. The longer design notes in
+How April Writer is built today. The longer design notes in
 `plan/architecture.md` are gitignored and local to the original author's machine; this file is the
 committed, current summary. Rules for working in the code are in [`AGENTS.md`](../AGENTS.md).
 
@@ -62,8 +62,9 @@ crate name links to its source tree.
 - `cargo xtask ci`: fmt, clippy `-D warnings`, tests, asset attribution, layering, wasm build.
 - `cargo xtask parity` regenerates [`parity-checklist.md`](parity-checklist.md); a test keeps the
   catalog percentage above a floor that only rises.
-- GitHub Actions on PRs: packaging lint, and FreeBSD / Windows ARM64 when build files change;
-  release builds on pushes to `release`.
+- GitHub Actions on `april/main`: the Linux source gate, packaging lint, printing/browser checks,
+  Windows ARM64 packaging and FreeBSD qualification. This repository does not publish releases;
+  April Office owns exact-commit qualification and publication.
 
 ## Revision history
 

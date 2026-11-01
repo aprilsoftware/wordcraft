@@ -13,8 +13,8 @@ const DOC_EXTS: &[&str] = &["docx", "docm", "dotx", "dotm", "doc", "dot", "odt",
 const IMAGE_EXTS: &[&str] = &["png", "jpg", "jpeg", "gif", "webp", "bmp", "wmf", "emf"];
 const RECIPIENT_EXTS: &[&str] = wordcraft_engine::cmd::mailings::RECIPIENT_EXTENSIONS;
 mod font_store;
-const CANVAS_ID: &str = "wordcraft_canvas";
-const LOADING_ID: &str = "wordcraft_loading";
+const CANVAS_ID: &str = "aprilwriter_canvas";
+const LOADING_ID: &str = "aprilwriter_loading";
 
 pub fn start() {
     eframe::WebLogger::init(log::LevelFilter::Info).ok();
@@ -27,7 +27,7 @@ pub fn start() {
             log::error!("missing <canvas id=\"{CANVAS_ID}\">");
             return;
         };
-        // `?host=parent`: a same-origin page framing WordCraft opens documents in it and stores
+        // `?host=parent`: a same-origin page framing April Writer opens documents in it and stores
         // what it saves (`host`). That page guards leaving it, so this one doesn't.
         let bridge = if query_param("host").as_deref() == Some("parent") { crate::host::Bridge::new() } else { None };
         let app_bridge = bridge.clone();
@@ -50,7 +50,7 @@ pub fn start() {
                 options,
                 Box::new(move |cc| {
                     if let Some(rs) = &cc.wgpu_render_state {
-                        log::info!("wordcraft-web: wgpu backend {:?}", rs.adapter.get_info().backend);
+                        log::info!("aprilwriter-web: wgpu backend {:?}", rs.adapter.get_info().backend);
                     }
                     // Fonts the user added on an earlier visit (#582); the app notices them arrive.
                     font_store::load_all(cc.egui_ctx.clone());
@@ -113,7 +113,9 @@ pub fn start() {
         if let Some(el) = document.get_element_by_id(LOADING_ID) {
             match result {
                 Ok(()) => el.remove(),
-                Err(e) => el.set_inner_html(&format!("<p>WordCraft failed to start: {e:?}</p><p>A browser with WebGPU or WebGL2 is required.</p>")),
+                Err(e) => {
+                    el.set_inner_html(&format!("<p>April Writer failed to start: {e:?}</p><p>A browser with WebGPU or WebGL2 is required.</p>"))
+                }
             }
         }
     });
@@ -580,7 +582,7 @@ fn trigger_anchor_download(window: &web_sys::Window, name: &str, bytes: &[u8]) -
 }
 
 /// The hidden iframe the last print loaded its PDF into.
-const PRINT_FRAME_ID: &str = "wordcraft-print-frame";
+const PRINT_FRAME_ID: &str = "aprilwriter-print-frame";
 
 /// Opens `bytes` (a PDF) as an object URL in a hidden iframe and calls the
 /// iframe's own `print()` once it has finished loading — this is the

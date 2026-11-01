@@ -793,6 +793,23 @@ fn info_fields_keep_typed_properties_through_a_web_save() {
 }
 
 #[test]
+fn open_page_shows_one_browse_action() {
+    let mut a = WordApp::new(wordcraft_engine::Session::new(wordcraft_doc::Document::new()), Services::default());
+    a.run("ui.backstage", json!({"value": true, "page": "open"})).unwrap();
+    let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1440.0, 900.0)).build_ui_state(
+        |ui, app: &mut WordApp| {
+            let ctx = ui.ctx().clone();
+            app.logic(&ctx);
+            app.ui(ui);
+        },
+        a,
+    );
+    h.run_steps(4);
+    assert_eq!(h.query_all_by_label("Browse…").count(), 1, "Open has one Browse action");
+    assert_eq!(h.query_all_by_label_contains("Browse in").count(), 0, "the redundant built-in browser action is hidden");
+}
+
+#[test]
 fn save_as_page_shows_browse_and_no_open_list() {
     let mut a = WordApp::new(wordcraft_engine::Session::new(wordcraft_doc::Document::new()), Services::default());
     a.run("ui.backstage", json!({"value": true, "page": "saveAs"})).unwrap();

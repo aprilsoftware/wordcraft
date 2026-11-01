@@ -30,7 +30,7 @@ fn italic() -> CharProps {
 pub fn sample_document() -> Document {
     let mut d = Document::new();
     d.core.title = "The Open Studio Handbook".into();
-    d.core.creator = "WordCraft".into();
+    d.core.creator = "April Writer".into();
     let mut b: Vec<Block> = Vec::new();
     b.push(Block::Para(styled("The Open Studio Handbook", "Title")));
     b.push(Block::Para(styled("How a small community of makers shares space, tools and time", "Subtitle")));
@@ -112,7 +112,7 @@ pub fn sample_document() -> Document {
     add(
         &mut h,
         "Visit the community board",
-        CharProps { style: Some("Hyperlink".into()), link: Some("https://getartcraft.com/".into()), ..Default::default() },
+        CharProps { style: Some("Hyperlink".into()), link: Some("https://www.aprilsoftware.com".into()), ..Default::default() },
     );
     add(&mut h, " for events.", CharProps::default());
     b.push(Block::Para(h));
@@ -213,8 +213,16 @@ mod tests {
 
     #[test]
     fn samples_are_valid() {
-        assert_eq!(sample_document().word_count(), 361);
-        for d in [sample_document(), letter(), resume(), report()] {
+        let sample = sample_document();
+        assert_eq!(sample.word_count(), 361);
+        let mut links = Vec::new();
+        for block in &sample.body {
+            if let Block::Para(p) = block.as_ref() {
+                links.extend(p.runs.iter().filter_map(|r| r.props.link.as_deref()));
+            }
+        }
+        assert_eq!(links, ["https://www.aprilsoftware.com"]);
+        for d in [sample, letter(), resume(), report()] {
             assert!(d.word_count() > 5);
             let l = wordcraft_layout::layout(&d, &mut wordcraft_layout::LayoutCache::new(), &Default::default());
             assert!(!l.pages.is_empty());

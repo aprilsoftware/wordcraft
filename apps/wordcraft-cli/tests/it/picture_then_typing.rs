@@ -1,4 +1,4 @@
-//! `wordcraft-cli run`: a picture inserted by `--cmd insert.picture` stays in the saved file when
+//! `aprilwriter-cli run`: a picture inserted by `--cmd insert.picture` stays in the saved file when
 //! the next commands type (#965).
 
 use std::process::Command;
@@ -18,7 +18,7 @@ fn typing_after_insert_picture_keeps_it_in_the_saved_file() {
     std::fs::write(&pic, PNG).unwrap();
     let picture = format!(r#"insert.picture={{"path":{},"width":250}}"#, serde_json::json!(pic.to_string_lossy()));
     let cmds = [r#"text.insert={"text":"x"}"#, "text.newParagraph", &picture, "text.newParagraph", r#"text.insert={"text":"cap"}"#];
-    let mut cli = Command::new(env!("CARGO_BIN_EXE_wordcraft-cli"));
+    let mut cli = Command::new(env!("CARGO_BIN_EXE_aprilwriter-cli"));
     cli.args(["run", "--template", "blank"]);
     for c in cmds {
         cli.args(["--cmd", c]);

@@ -1,12 +1,12 @@
 //! Hunspell dictionaries installed on the system, read at runtime.
 //!
-//! WordCraft doesn't bundle large spelling dictionaries. For languages with an affix dictionary
+//! April Writer doesn't bundle large spelling dictionaries. For languages with an affix dictionary
 //! (Polish, Russian), it reads the standard Hunspell `.aff`/`.dic` pair installed by the operating system,
 //! a package manager or LibreOffice, with [`crate::affix::AffixDict::from_hunspell`]. When none is
 //! installed the language has no spelling check (no marks, no errors), like Word without the
 //! language's proofing tools.
 //!
-//! Search order: the directory in `WORDCRAFT_DICTIONARIES` (or one set with
+//! Search order: the directory in `APRILWRITER_DICTIONARIES` (or one set with
 //! [`set_dictionary_dir`]), then the usual system locations. On the web there are none.
 
 use std::path::{Path, PathBuf};
@@ -63,6 +63,11 @@ fn lo_ext_dirs(name: &str) -> Vec<String> {
     if full == first { vec![first] } else { vec![first, full] }
 }
 
+/// April Writer's per-user Windows dictionary folder, followed by the shared Hunspell folder.
+fn windows_user_dictionary_dirs(base: &Path) -> [PathBuf; 2] {
+    [base.join("April Writer").join("dictionaries"), base.join("hunspell")]
+}
+
 /// Directories that may hold Hunspell dictionaries, most specific first. `lo_exts`, when a
 /// language is being searched for, adds LibreOffice's extension folders for it (`dict-pt-BR`).
 pub fn search_dirs(lo_exts: Option<&[String]>) -> Vec<PathBuf> {
@@ -73,7 +78,7 @@ pub fn search_dirs(lo_exts: Option<&[String]>) -> Vec<PathBuf> {
     if cfg!(target_arch = "wasm32") {
         return dirs;
     }
-    if let Some(d) = std::env::var_os("WORDCRAFT_DICTIONARIES").filter(|v| !v.is_empty()) {
+    if let Some(d) = std::env::var_os("APRILWRITER_DICTIONARIES").filter(|v| !v.is_empty()) {
         dirs.push(PathBuf::from(d));
     }
     // LibreOffice keeps each language under `…/share/extensions/<dict-xx>`.
@@ -83,8 +88,7 @@ pub fn search_dirs(lo_exts: Option<&[String]>) -> Vec<PathBuf> {
     if cfg!(windows) {
         for var in ["LOCALAPPDATA", "APPDATA"] {
             if let Some(base) = std::env::var_os(var).filter(|v| !v.is_empty()).map(PathBuf::from) {
-                dirs.push(base.join("WordCraft").join("dictionaries"));
-                dirs.push(base.join("hunspell"));
+                dirs.extend(windows_user_dictionary_dirs(&base));
             }
         }
         for var in ["ProgramFiles", "ProgramFiles(x86)"] {
@@ -289,6 +293,12 @@ mod tests {
         let (_, d) = decode(b"SET microsoft-cp1251\n", b"1\n\xb8\xeb\xea\xe0 \xc4\xee\xec\n").unwrap();
         assert_eq!(d, "1\nёлка Дом\n");
         assert_eq!(decode_high(&[0x98], CP1251_HIGH), "\u{fffd}");
+    }
+
+    #[test]
+    fn windows_user_dictionary_dirs_use_april_identity() {
+        let base = Path::new("profile");
+        assert_eq!(super::windows_user_dictionary_dirs(base), [base.join("April Writer/dictionaries"), base.join("hunspell")]);
     }
 
     #[test]

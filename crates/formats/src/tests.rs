@@ -1,5 +1,6 @@
 //! Round trips through every format, malformed input and fuzzing.
 
+use std::io::Read;
 use std::sync::Arc;
 
 use wordcraft_doc::para::InlineObject;
@@ -284,7 +285,9 @@ fn html_ruby_at_the_paragraph_start_keeps_a_leading_space() {
 #[test]
 fn rtf_round_trip() {
     check_round_trip("rtf", true);
-    let back = import("rtf", &export("rtf", &sample()).unwrap().unwrap()).unwrap().unwrap();
+    let bytes = export("rtf", &sample()).unwrap().unwrap();
+    assert!(String::from_utf8_lossy(&bytes).contains(r"{\*\generator April Writer;}"));
+    let back = import("rtf", &bytes).unwrap().unwrap();
     assert_eq!(back.media.len(), 1, "picture survives");
     assert_eq!(back.core.title, "Sample Title");
     assert_eq!(back.core.creator, "Ada Writer");
@@ -296,6 +299,12 @@ fn odt_round_trip() {
     let bytes = export("odt", &sample()).unwrap().unwrap();
     assert!(bytes.starts_with(b"PK"));
     assert_eq!(bytes.get(30..38), Some(&b"mimetype"[..]), "mimetype is the first entry");
+    {
+        let mut zip = zip::ZipArchive::new(std::io::Cursor::new(&bytes)).unwrap();
+        let mut meta = String::new();
+        zip.by_name("meta.xml").unwrap().read_to_string(&mut meta).unwrap();
+        assert!(meta.contains("<meta:generator>April Writer</meta:generator>"), "{meta}");
+    }
     let back = import("odt", &bytes).unwrap().unwrap();
     assert_eq!(back.media.len(), 1, "picture survives");
     assert_eq!(back.core.title, "Sample Title");
@@ -306,7 +315,7 @@ fn odt_round_trip() {
 fn latex_round_trip() {
     check_round_trip("tex", true);
     let tex = String::from_utf8(export("tex", &sample()).unwrap().unwrap()).unwrap();
-    assert!(tex.starts_with("% Written by WordCraft") && tex.contains("\\documentclass{article}"), "{tex}");
+    assert!(tex.starts_with("% Written by April Writer") && tex.contains("\\documentclass{article}"), "{tex}");
     assert!(tex.contains("\\section*{Main Heading}") && tex.contains("\\subsection*{Second Level}"), "{tex}");
     assert!(tex.contains("\\textbf{bold}") && tex.contains("\\textit{italic}"), "{tex}");
     assert!(tex.contains("\\href{https://example.com/x}{a link}"), "{tex}");

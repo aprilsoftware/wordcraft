@@ -814,7 +814,7 @@ fn rotation_drag_turns_picture_pixels_live_and_commits_once_or_cancels() {
         assert_eq!(h.state().session.undo_depth(), depth);
         let rendered = h.render().unwrap();
         if initial == 0.0
-            && let Ok(path) = std::env::var("WORDCRAFT_ROTATION_SHOT")
+            && let Ok(path) = std::env::var("APRILWRITER_ROTATION_SHOT")
         {
             rendered.save(path).unwrap();
         }

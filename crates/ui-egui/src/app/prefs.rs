@@ -48,9 +48,14 @@ impl WordApp {
             self.ui.legacy_interface_size.take().filter(|_| self.ui.interface_size.is_auto()).and_then(|old| theme::legacy_interface_percent(&old));
         // The session owns the name from here on; `prefs` copies it back when saving.
         // A saved empty name stays empty (#4368); one of only spaces keeps the default.
-        if let Some(author) = self.ui.author.take()
+        if let Some(mut author) = self.ui.author.take()
             && (author.is_empty() || !author.trim().is_empty())
         {
+            // Correct only the default written by pre-identity April Writer experiments. Custom
+            // names and author names already stored inside documents remain untouched.
+            if author == wordcraft_engine::Session::LEGACY_DEFAULT_AUTHOR {
+                author = wordcraft_engine::Session::DEFAULT_AUTHOR.into();
+            }
             self.session.author = author;
         }
         self.session.initials = std::mem::take(&mut self.ui.initials).chars().take(wordcraft_engine::cmd::options::MAX_INITIALS_CHARS).collect();

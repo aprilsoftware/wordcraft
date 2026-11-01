@@ -524,7 +524,7 @@ impl State {
 pub enum Backend {
     /// The system's speech program.
     System,
-    /// Silent; a sentence lasts until something interrupts it (tests, `WORDCRAFT_SPEECH=off`).
+    /// Silent; a sentence lasts until something interrupts it (tests, `APRILWRITER_SPEECH=off`).
     Hold,
     /// Silent; every sentence finishes at once (tests).
     Instant,
@@ -558,7 +558,7 @@ pub struct ReadAloud {
 
 impl Default for ReadAloud {
     fn default() -> Self {
-        let off = cfg!(test) || std::env::var("WORDCRAFT_SPEECH").is_ok_and(|v| v == "off");
+        let off = cfg!(test) || std::env::var("APRILWRITER_SPEECH").is_ok_and(|v| v == "off");
         ReadAloud {
             shared: Arc::new((
                 Mutex::new(Shared { queue: Vec::new(), index: 0, state: State::Stopped, rate: 1.0, generation: 0, error: None, running: false }),

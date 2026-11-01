@@ -7,7 +7,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::closure::Closure;
 use web_sys::{IdbDatabase, IdbRequest, IdbTransactionMode};
 
-const DB_NAME: &str = "wordcraft";
+const DB_NAME: &str = "aprilwriter";
 const STORE: &str = "fonts";
 
 fn js(e: JsValue) -> String {

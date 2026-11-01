@@ -4,8 +4,13 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
-default-run = "wordcraft"
-description = "WordCraft desktop app"
+autobins = false
+default-run = "aprilwriter"
+description = "April Writer desktop app"
+
+[[bin]]
+name = "aprilwriter"
+path = "src/main.rs"
 
 [lints]
 workspace = true
@@ -26,11 +31,11 @@ log = { workspace = true }
 chrono = { workspace = true }
 
 [build-dependencies]
-# Icon + VERSIONINFO for wordcraft.exe; build.rs only uses it when the target is Windows.
+# April Writer icon + VERSIONINFO for aprilwriter.exe; build.rs only uses it when the target is Windows.
 winresource = "0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-# Finder double-click, Open With, Dock drops and `open -a WordCraft letter.docx` arrive as a
+# Finder double-click, Open With, Dock drops and `open -a "April Writer" letter.docx` arrive as a
 # kAEOpenDocuments Apple event, which winit 0.30 doesn't handle (#27). This audited crate (also used
 # by PdfCraft and PhotoCraft) registers the handler (Objective-C interop needs unsafe, which our
 # workspace forbids) behind a safe API. Pinned exactly: review the diff before bumping.
@@ -83,6 +88,3 @@ pollster = "1"
 arboard = { workspace = true, features = ["image-data"] }
 # The control server's random key.
 getrandom = "0.3"
-
-[target.'cfg(windows)'.dependencies]
-craft-update = { workspace = true }

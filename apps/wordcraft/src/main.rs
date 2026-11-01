@@ -1,8 +1,8 @@
-//! WordCraft desktop app.
+//! April Writer desktop app.
 //!
-//! Usage: `wordcraft [--control <port>] [--sample] [files…]`; `--help` prints `USAGE`.
+//! Usage: `aprilwriter [--control <port>] [--sample] [files…]`; `--help` prints `USAGE`.
 //!
-//! `--control <port>` (or `WORDCRAFT_CONTROL_PORT`) starts a localhost JSON-lines control server:
+//! `--control <port>` (or `APRILWRITER_CONTROL_PORT`) starts a localhost JSON-lines control server:
 //! `{"id":1,"key":"…","method":"engine.execute","params":{"command":"text.insert","params":{"text":"Hi"}}}`.
 //! Every request needs the key the app writes to `<settings>/control-key.<instance>` (mode 0600,
 //! removed on exit). See `docs/control-protocol.md`.
@@ -186,9 +186,9 @@ fn load_user_dictionary(app: &mut WordApp) {
     }
 }
 
-/// Runs without preferences (`WORDCRAFT_NO_PREFS`, agents' test runs) neither read nor write them.
+/// Runs without preferences (`APRILWRITER_NO_PREFS`, agents' test runs) neither read nor write them.
 fn prefs_enabled() -> bool {
-    std::env::var_os("WORDCRAFT_NO_PREFS").is_none()
+    std::env::var_os("APRILWRITER_NO_PREFS").is_none()
 }
 
 fn load_prefs(app: &mut WordApp) {
@@ -262,7 +262,7 @@ fn write_prefs(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
 /// Native file dialogs, shown without blocking the window (`file_dialogs`, #94), File › Print
 /// through the system spooler (`print`), the system clipboard's text, formatted copies,
 /// pictures and format names (`clipboard`, #45, #584, #687, #833), the system's animation setting
-/// (`animations`), and making WordCraft the default app for Word documents (`default_apps`, #295).
+/// (`animations`), and making April Writer the default app for Word documents (`default_apps`, #295).
 fn services(file_dialog: file_dialogs::Hook, ctx: &egui::Context) -> Services {
     Services {
         file_dialog: Some(file_dialog),
@@ -297,27 +297,27 @@ mod app_icon_tests {
         let icon = app_icon().expect("the approved April badge decodes");
         assert_eq!((icon.width, icon.height), (1024, 1024));
         assert_eq!(icon.rgba.get(3), Some(&0), "the top-left corner is transparent");
-        assert!(icon.rgba.chunks_exact(4).any(|pixel| pixel[3] != 0), "the badge has visible pixels");
+        assert!(icon.rgba.as_chunks::<4>().0.iter().any(|pixel| pixel[3] != 0), "the badge has visible pixels");
     }
 }
 
 const USAGE: &str = "\
-wordcraft — the WordCraft desktop app
+aprilwriter — the April Writer desktop app
 
 USAGE:
-  wordcraft [--sample] [--control PORT] [FILE…]
+  aprilwriter [--sample] [--control PORT] [FILE…]
 
 OPTIONS:
   --sample            open the sample document
   --control PORT      start the localhost control server on PORT, for agents and scripts
-                      (or set WORDCRAFT_CONTROL_PORT); see docs/control-protocol.md
+                      (or set APRILWRITER_CONTROL_PORT); see docs/control-protocol.md
   --version           print the version
   -h, --help          print this help
 ";
 
 /// The commit the build came from (short), or `dev`.
 fn build_sha() -> &'static str {
-    option_env!("WORDCRAFT_BUILD_SHA").map(|s| s.get(..8).unwrap_or(s)).unwrap_or("dev")
+    option_env!("APRILWRITER_BUILD_SHA").map(|s| s.get(..8).unwrap_or(s)).unwrap_or("dev")
 }
 
 /// The arguments as text, and apart the files whose names aren't valid Unicode, such as a Latin-1
@@ -330,7 +330,7 @@ fn text_args() -> (Vec<String>, Vec<std::path::PathBuf>) {
             Err(a) if args.last().is_some_and(|p| p == "--control") => {
                 // Unlike `eprintln!`, never panics.
                 let (n, lossy) = (i + 1, a.to_string_lossy());
-                let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("wordcraft: argument {n} is not valid Unicode: {lossy}\n"));
+                let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("aprilwriter: argument {n} is not valid Unicode: {lossy}\n"));
                 std::process::exit(2);
             }
             Err(a) => files.push(a.into()),
@@ -380,15 +380,10 @@ fn open_non_unicode(app: &mut WordApp, path: &std::path::Path) {
 /// geometry, opens requested documents or the Start screen, starts the control server when
 /// asked, and runs the eframe event loop.
 fn main() -> eframe::Result {
-    // Windows: the update helper is a copy of this program started with `--finish-update`.
-    #[cfg(windows)]
-    if let Some(result) = craft_update::self_update::finish(&wordcraft_ui_egui::UPDATE_APP, &std::env::args_os().skip(1).collect::<Vec<_>>()) {
-        std::process::exit(i32::from(result.is_err()));
-    }
     // First, so the panic hook and every start-up warning are recorded (`logging`).
     let logger = logging::install();
     logging::install_panic_hook();
-    let mut control_port: Option<u16> = std::env::var("WORDCRAFT_CONTROL_PORT").ok().and_then(|p| p.parse().ok());
+    let mut control_port: Option<u16> = std::env::var("APRILWRITER_CONTROL_PORT").ok().and_then(|p| p.parse().ok());
     let mut files = Vec::new();
     let mut sample = false;
     let (args, other_files) = text_args();
@@ -408,7 +403,7 @@ fn main() -> eframe::Result {
             }
             "--sample" => sample = true,
             "--version" => {
-                println!("wordcraft {} ({})", env!("CARGO_PKG_VERSION"), build_sha());
+                println!("aprilwriter {} ({})", env!("CARGO_PKG_VERSION"), build_sha());
                 return Ok(());
             }
             // Before the window opens (#968). Unlike `print!`, a closed stdout can't panic.
@@ -422,7 +417,7 @@ fn main() -> eframe::Result {
     // After the loop, so `--version` later on the line still wins. Unlike `eprintln!`, never panics.
     if let Some(port) = bad_control {
         let got = port.map(|p| format!(", got {p:?}")).unwrap_or_default();
-        let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("wordcraft: --control needs a port number from 1 to 65535{got}\n"));
+        let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("aprilwriter: --control needs a port number from 1 to 65535{got}\n"));
         std::process::exit(2);
     }
     // The log file lives in the settings directory, next to the preferences; opened after the
@@ -432,7 +427,7 @@ fn main() -> eframe::Result {
     if let Some(logger) = logger {
         match log_dir().filter(|_| prefs_enabled()) {
             Some(dir) => match logger.attach_dir(&dir) {
-                Ok(path) => log::info!("WordCraft {} ({}), log file {}", env!("CARGO_PKG_VERSION"), build_sha(), path.display()),
+                Ok(path) => log::info!("April Writer {} ({}), log file {}", env!("CARGO_PKG_VERSION"), build_sha(), path.display()),
                 // Standard error only by now (`attach_dir` gave up on the file); unlike `eprintln!`, never panics.
                 Err(e) => log::warn!("no log file: {e}"),
             },
@@ -442,7 +437,7 @@ fn main() -> eframe::Result {
     let mut options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title("April Writer")
-            .with_app_id("ai.storyteller.wordcraft")
+            .with_app_id("com.aprilsoftware.aprilwriter")
             .with_inner_size([1440.0, 920.0])
             .with_min_inner_size([760.0, 480.0])
             .with_drag_and_drop(true)
@@ -471,9 +466,9 @@ fn main() -> eframe::Result {
     }
     #[cfg(all(unix, not(target_os = "macos")))]
     // winit has no file drag-and-drop on Wayland (only on X11), so dropping files from the file
-    // manager showed a "no" cursor. Run through XWayland when it's there; WORDCRAFT_WAYLAND=1
+    // manager showed a "no" cursor. Run through XWayland when it's there; APRILWRITER_WAYLAND=1
     // keeps the native Wayland backend.
-    if std::env::var_os("DISPLAY").is_some() && std::env::var_os("WORDCRAFT_WAYLAND").is_none() {
+    if std::env::var_os("DISPLAY").is_some() && std::env::var_os("APRILWRITER_WAYLAND").is_none() {
         options.event_loop_builder = Some(Box::new(|b| {
             use winit::platform::x11::EventLoopBuilderExtX11;
             b.with_x11();
@@ -497,7 +492,6 @@ fn main() -> eframe::Result {
             let mut session = Session::new(doc);
             session.system_region = region;
             let mut app = WordApp::new(session, services(file_dialog, &cc.egui_ctx));
-            app.set_startup_update_check(true);
             load_prefs(&mut app);
             load_user_dictionary(&mut app);
             // A region chosen in File › Options replaces the system's for the first blank

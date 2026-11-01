@@ -184,6 +184,8 @@ fn about_dialog_uses_april_writer_identity_and_provenance() {
     for old in ["getartcraft.com/apps/wordcraft", "Join us on Discord: discord.gg/artcraft"] {
         assert!(h.query_by_label(old).is_none(), "About no longer shows {old:?}");
     }
+    let logo = h.get_by_label("April Software logo").rect();
+    assert!(logo.width() >= 300.0 && logo.height() >= 110.0, "the tightly cropped header logo is shown large enough: {logo:?}");
 }
 
 fn props(app: &WordApp) -> wordcraft_doc::props::ParaProps {

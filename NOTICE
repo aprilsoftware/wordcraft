@@ -1,11 +1,14 @@
-WordCraft
+April Writer
+Copyright (c) 2026 April Software S.A.
+Derived from WordCraft:
 Copyright (c) 2026 ArtCraft Team and the WordCraft contributors.
 Licensed under the MIT License or the Apache License, Version 2.0, at your option
 (LICENSE-MIT, LICENSE-APACHE).
 
-The ArtCraft name, wordmark and logos in docs/brand/ are trademarks of the ArtCraft Team. They are
-not open source and are not covered by the license above; their terms are in
-docs/brand/LICENSE-brand.txt.
+The modified April distribution does not use ArtCraft product branding and does not include its
+restricted wordmark or logo assets. The original trademark terms are preserved in
+docs/brand/LICENSE-brand.txt solely for legal provenance. April names and artwork are governed by
+docs/brand/LICENSE-april.txt.
 
 Third-party material
 

@@ -22,10 +22,18 @@ fn tool(s: &mut Server, name: &str, args: Value) -> Value {
 fn lifecycle_and_tools() {
     let mut s = Server::new(Box::new(Headless::default()));
     let init = call(&mut s, 1, "initialize", json!({"protocolVersion": "2025-06-18"}));
-    assert_eq!(init["result"]["serverInfo"]["name"], "wordcraft");
+    let result = &init["result"];
+    assert_eq!(result["serverInfo"]["name"], "aprilwriter");
+    assert_eq!(result["serverInfo"]["title"], "April Writer");
+    assert_eq!(result["serverInfo"]["websiteUrl"], "https://www.aprilsoftware.com");
+    let instructions = result["instructions"].as_str().unwrap_or_default();
+    assert!(instructions.contains("April Writer") && instructions.contains("contact@aprilsoftware.com"));
+    assert!(!instructions.contains("WordCraft") && !instructions.contains("storytold") && !instructions.contains("artcraft"));
     assert!(s.handle_line(r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#).is_none());
     let tools = call(&mut s, 2, "tools/list", json!({}));
     assert!(tools["result"]["tools"].as_array().unwrap().len() >= 12);
+    assert!(tools.to_string().contains("April Writer"));
+    assert!(!tools.to_string().contains("WordCraft"));
     let bad = call(&mut s, 3, "nope", json!({}));
     assert!(bad["error"].is_object());
     assert!(s.handle_line("{not json").unwrap().contains("parse error"));
@@ -136,7 +144,7 @@ fn resources() {
     let mut s = Server::new(Box::new(Headless::default()));
     let l = call(&mut s, 1, "resources/list", json!({}));
     assert_eq!(l["result"]["resources"].as_array().unwrap().len(), 2);
-    let r = call(&mut s, 2, "resources/read", json!({"uri": "wordcraft://document"}));
+    let r = call(&mut s, 2, "resources/read", json!({"uri": "aprilwriter://document"}));
     assert!(r["result"]["contents"][0]["text"].as_str().unwrap().contains("blocks"));
 }
 

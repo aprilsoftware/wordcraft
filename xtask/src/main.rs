@@ -35,7 +35,7 @@ commands:
                   compare two PDFs of a document page by page (SSIM, line breaks, offsets);
                   needs poppler (pdftoppm, pdftotext)
   ico <out.ico> <in.png>...
-                  pack square PNGs (<= 256 px) into a Windows .ico (see packaging/icons.sh)
+                  pack square PNGs (<= 256 px) into a Windows .ico (see packaging/windows/icons.sh)
 ";
 
 fn main() -> ExitCode {

@@ -1,35 +1,173 @@
-# Windows on ARM: package the ARM64 release the way release.yml does (cross-compiled on an x64
-# runner, unsigned here), then install that MSI on a Windows 11 ARM64 runner, check the installed
-# binaries are ARM64, run the CLI natively, and uninstall. (A native ARM64 `cargo test` job is left
-# out for now: PdfCraft saw an intermittent access violation in egui UI tests there.)
+# Build April Writer's real ARM64 Windows packages on x64, then install and run the MSI on a
+# native Windows 11 ARM runner. Artifacts are unsigned, short-lived qualification outputs only.
 name: Windows ARM64
 
-# Nightly on main and on pushes to `release` (dependency and runner-image drift shows up within a
-# day, and always before a release ships), and on PRs that change the Windows packaging itself.
 on:
-  schedule:
-    - cron: "13 6 * * *"
   push:
-    branches: [release]
-  pull_request:
+    branches: [april/main]
     paths:
-      - .github/workflows/windows-arm64.yml
-      - packaging/windows/**
+      - ".github/workflows/windows-arm64.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "apps/wordcraft/**"
+      - "apps/wordcraft-cli/**"
+      - "crates/**"
+      - "assets/app-icon/aprilwriter.ico"
+      - "packaging/windows/**"
+      - "NOTICE"
+      - "ATTRIBUTION.md"
+      - "LICENSE-*"
+  pull_request:
+    branches: [april/main]
+    paths:
+      - ".github/workflows/windows-arm64.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "apps/wordcraft/**"
+      - "apps/wordcraft-cli/**"
+      - "crates/**"
+      - "assets/app-icon/aprilwriter.ico"
+      - "packaging/windows/**"
+      - "NOTICE"
+      - "ATTRIBUTION.md"
+      - "LICENSE-*"
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: windows-arm64-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: always
 
 jobs:
-  windows-arm64:
-    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
-    uses: storytold/craft-common-actions/.github/workflows/windows-arm64.yml@main
-    with:
-      app-name: wordcraft
-      app-dir: WordCraft
-      install-relative-path: Programs/ArtCraft/WordCraft
-      install-scope: perUser
+  package:
+    name: Package ARM64 on x64
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out the reviewed source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: 1.95.0
+          targets: aarch64-pc-windows-msvc
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          key: aprilwriter-windows-arm64-package
+          save-if: ${{ github.ref == 'refs/heads/april/main' }}
+
+      - name: Install pinned WiX toolchain
+        shell: pwsh
+        run: |
+          $tools = Join-Path $env:RUNNER_TEMP 'aprilwriter-wix'
+          dotnet tool install --tool-path $tools wix --version 5.0.2
+          if ($LASTEXITCODE -ne 0) { throw 'WiX installation failed.' }
+          foreach ($extension in 'UI', 'Util') {
+            & (Join-Path $tools 'wix.exe') extension add -g "WixToolset.$extension.wixext/5.0.2"
+            if ($LASTEXITCODE -ne 0) { throw "WiX extension $extension installation failed." }
+          }
+          $tools >> $env:GITHUB_PATH
+
+      - name: Build unsigned April Writer packages
+        shell: pwsh
+        env:
+          DIST: ${{ github.workspace }}\dist\arm64
+        run: ./packaging/windows/package.ps1 -Arch arm64
+
+      - name: Verify package artifact names
+        shell: pwsh
+        run: |
+          $msi = @(Get-ChildItem dist/arm64/aprilwriter-*-windows-arm64.msi)
+          $zip = @(Get-ChildItem dist/arm64/aprilwriter-*-windows-arm64-portable.zip)
+          if ($msi.Count -ne 1) { throw "Expected one April Writer ARM64 MSI, found $($msi.Count)." }
+          if ($zip.Count -ne 1) { throw "Expected one April Writer ARM64 portable ZIP, found $($zip.Count)." }
+          Write-Output "MSI: $($msi[0].Name)"
+          Write-Output "ZIP: $($zip[0].Name)"
+
+      - name: Upload short-lived qualification artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aprilwriter-windows-arm64
+          path: dist/arm64/*
+          if-no-files-found: error
+          retention-days: 7
+
+  install:
+    name: Install and run on native ARM64
+    needs: package
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    steps:
+      - name: Download qualification artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: aprilwriter-windows-arm64
+          path: dist
+
+      - name: Install, inspect, run, and uninstall April Writer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $msiFiles = @(Get-ChildItem dist/aprilwriter-*-windows-arm64.msi)
+          if ($msiFiles.Count -ne 1) { throw "Expected one MSI, found $($msiFiles.Count)." }
+          $msi = $msiFiles[0].FullName
+          $installLog = Join-Path $env:RUNNER_TEMP 'aprilwriter-install.log'
+          $uninstallLog = Join-Path $env:RUNNER_TEMP 'aprilwriter-uninstall.log'
+          $installDir = Join-Path $env:LOCALAPPDATA 'Programs\April Software\April Writer'
+          $main = Join-Path $installDir 'aprilwriter.exe'
+          $cli = Join-Path $installDir 'aprilwriter-cli.exe'
+          $registryKey = 'HKCU:\Software\April Software\April Writer'
+          $startShortcut = Join-Path ([Environment]::GetFolderPath('Programs')) 'April Writer.lnk'
+
+          function Invoke-Msi([string[]] $Arguments, [string] $Log) {
+            $process = Start-Process msiexec.exe -ArgumentList ($Arguments + @('/qn', '/l*v', $Log)) -Wait -PassThru
+            if ($process.ExitCode -ne 0) {
+              if (Test-Path -LiteralPath $Log) { Get-Content -LiteralPath $Log -Tail 80 }
+              throw "msiexec exited $($process.ExitCode)."
+            }
+          }
+
+          function Assert-Arm64([string] $Path) {
+            if (-not (Test-Path -LiteralPath $Path)) { throw "Missing installed executable: $Path" }
+            $bytes = [System.IO.File]::ReadAllBytes($Path)
+            if ($bytes.Length -lt 0x40) { throw "$Path is too short to be a PE file." }
+            $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+            if ($pe -lt 0 -or $pe + 6 -gt $bytes.Length) { throw "$Path has an invalid PE header offset." }
+            $machine = [BitConverter]::ToUInt16($bytes, $pe + 4)
+            if ($machine -ne 0xAA64) { throw "$Path has PE machine 0x$('{0:X}' -f $machine), not ARM64." }
+            Write-Output "PASS ARM64: $Path"
+          }
+
+          if (Test-Path -LiteralPath $main) { throw "Runner is not clean: $main already exists." }
+          Invoke-Msi @('/i', "`"$msi`"", 'ALLUSERS=2', 'MSIINSTALLPERUSER=1') $installLog
+
+          Assert-Arm64 $main
+          Assert-Arm64 $cli
+          if (-not (Test-Path -LiteralPath $startShortcut)) { throw "Missing Start Menu shortcut: $startShortcut" }
+          $registeredDir = (Get-ItemProperty -LiteralPath $registryKey -ErrorAction Stop).InstallDir
+          $actualDir = [IO.Path]::GetFullPath($registeredDir).TrimEnd('\')
+          $expectedDir = [IO.Path]::GetFullPath($installDir).TrimEnd('\')
+          if ($actualDir -ne $expectedDir) { throw "InstallDir is '$registeredDir', expected '$installDir'." }
+
+          $versionOutput = & $cli --version 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 0) { Write-Output $versionOutput; throw "aprilwriter-cli --version exited $LASTEXITCODE." }
+          if ([string]::IsNullOrWhiteSpace($versionOutput)) { throw 'aprilwriter-cli --version produced no output.' }
+          Write-Output "PASS native CLI: $($versionOutput.Trim())"
+
+          Invoke-Msi @('/x', "`"$msi`"") $uninstallLog
+          foreach ($leftover in $main, $cli, $startShortcut) {
+            if (Test-Path -LiteralPath $leftover) { throw "Uninstall left $leftover behind." }
+          }
+          if (Test-Path -LiteralPath $registryKey) { throw "Uninstall left $registryKey behind." }
+          Write-Output 'PASS April Writer ARM64 uninstall cleanup'

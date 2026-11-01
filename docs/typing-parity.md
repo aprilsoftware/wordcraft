@@ -35,7 +35,7 @@ performed for this change.
 Enter at the end of a paragraph containing exactly `=rand()` or `=lorem()` replaces
 the formula with five paragraphs of three sentences and leaves the caret in a following
 empty paragraph. `=rand(p)` / `=lorem(p)` set the paragraph count; `(p,s)` sets both
-counts. WordCraft accepts integers from 1 to 200 for each count; if either parameter
+counts. April Writer accepts integers from 1 to 200 for each count; if either parameter
 is invalid or outside that range, both revert to 5/3. Other text, a selection or Enter
 inside the formula follows ordinary Enter behaviour. The English text is original to
 WordCraft; lorem ipsum uses traditional pseudo-Latin. This implements the issue's
@@ -72,7 +72,7 @@ Bullets and Numbering decide whether to toggle off from the selected paragraphs'
 | Undo after a heading list | one step: paragraph styles and the heading styles' numbers come back | `undo_takes_a_heading_preset_back_in_one_step` |
 | A paragraph whose numbering was switched off, then Heading 2 from a heading-linked list | numbered (1.1) by the style | `applying_a_numbered_heading_style_numbers_the_paragraph` |
 | `1. ` typed in a Heading 1 (also `a) ` in a Heading 2, `1. ` in a Subtitle) | numbered, the style kept; only body text becomes List Paragraph (checked in Word for Mac, 2026-10-15) | `typing_1_dot_in_a_heading_keeps_the_heading_style` |
-| `---` or `+--+--+` Enter in a heading numbered by a heading-linked list, at the top of the document or below another paragraph | stays text, with no border or table, and the heading keeps its number, as in a paragraph numbered directly (WordCraft's rule; not compared with Word) | `border_and_table_lines_stay_text_in_a_style_numbered_heading` |
+| `---` or `+--+--+` Enter in a heading numbered by a heading-linked list, at the top of the document or below another paragraph | stays text, with no border or table, and the heading keeps its number, as in a paragraph numbered directly (April Writer's rule; not compared with Word) | `border_and_table_lines_stay_text_in_a_style_numbered_heading` |
 | ⌘Z right after an AutoFormat | undoes only the AutoFormat (`* ` comes back as text) | `undo_right_after_autoformat_undoes_only_the_autoformat` |
 
 ## Undo
@@ -111,9 +111,9 @@ formatting of the text before the cursor. Not yet compared side by side in Word.
 | Select All, then Delete or Backspace | the whole document goes, tables included, also when it starts with a table; one empty paragraph is left | `select_all_then_delete_removes_tables` |
 | Backspace / Delete with a whole table selected (Select Table, or every cell dragged over) | Backspace removes the table, like Delete Table (one undo step; with tracking on its text is marked deleted and the structure stays); the caret goes to the paragraph after it. Delete clears the cells and keeps the table (each cell as below). A nested table goes on its own and leaves the cell's paragraph; a table that was the only block leaves one empty paragraph | `backspace_with_the_whole_table_selected_removes_the_table`, `delete_with_the_whole_table_selected_clears_the_cells_and_keeps_the_table`, `backspace_on_a_selected_nested_table_removes_only_it`, `backspace_on_a_selected_table_that_is_the_only_block_leaves_an_empty_paragraph`, `tracked_backspace_on_a_selected_table_marks_its_text_deleted_like_delete_table` |
 | Backspace / Delete with a table and the paragraph before or after it selected | both remove the table, whatever end the selection starts in; the text around joins. Any table the selection covers whole goes, at any nesting level | `delete_or_backspace_with_the_table_and_the_paragraph_after_selected_removes_the_table`, `delete_or_backspace_with_the_paragraph_before_and_the_table_selected_removes_the_table` |
-| Backspace / Delete with whole rows or columns selected | Backspace deletes the rows or columns (Delete Rows / Delete Columns); Delete clears their cells. One selected cell is just that cell, also in a one-row or one-column table: Backspace clears it. A cleared cell is left with one empty paragraph, however many it had, with the formatting of its last paragraph (whose mark ends the cell); a table nested in it goes too (checked against Word 2019 for Windows, #2802). With Track Changes on, Delete still marks the cells' text deleted as before. **Differs:** in a 1×1 table, Select Cell then Backspace removes the table (WordCraft has no end-of-row mark to tell the cell from the whole table; the end-of-row caret position is still missing, #1844) | `backspace_deletes_selected_rows_and_delete_clears_them`, `backspace_deletes_selected_columns_and_delete_clears_them`, `backspace_on_one_selected_cell_of_a_one_row_or_one_column_table_clears_it`, `delete_on_whole_cells_leaves_one_empty_paragraph_in_each`; `delete_range` edge cases: `edit::tests::a_range_ending_at_the_end_of_a_cell_that_isnt_the_last_keeps_the_table` and five more (other tables, nested tables, story ends, headers and footnotes, content controls, nesting past the paragraph walk) |
-| Table Layout › Delete Table / Rows / Columns / Cells (tracking on) | like Word deleting a selected table: the cells' text is marked deleted and the table structure stays (WordCraft has no tracked row or column deletion, `w:trPr/w:del`, so rows and columns keep their cells too, where Word's Accept removes the rows); text you inserted yourself is just removed; Reject All restores the text. A table, row or column with no text at all (empty, or its deletion already accepted) is removed as with tracking off; one whose text is all already marked deleted is left alone with a message (accept or reject first). Delete Columns leaves a merged cell that also spans a kept column alone (it narrows, keeping its text). A content control locked against deletion, or content locked against editing, refuses the delete with tracking on or off | `tests::revision_checks::tracked_table_delete_marks_the_text_deleted_and_reject_all_restores_it`, `tracked_row_column_and_cell_deletes_mark_their_text_deleted`, `tracked_table_delete_over_tracked_insertions_rejects_back_to_the_original`, `table_deletes_refuse_a_control_locked_against_deletion`, `tracked_delete_table_removes_a_table_with_no_live_text`, `delete_columns_leaves_a_merged_cell_that_keeps_a_column_alone`, `tracked_row_and_column_deletes_over_tracked_changes_reject_back_to_the_original` |
-| Change Case (Shift+F3, Home › Aa) (tracking on) | Word shows no insertion or deletion markup (checked with Formatting markup set to none, so Word may record it as a hidden formatting revision). **Differs:** WordCraft records the changed letters as a tracked deletion of the old and insertion of the new, since case isn't a run property a formatting revision could hold; Reject All restores the old case, Accept All keeps the new. Your own tracked insertion is rewritten in place; already-deleted text is left alone and doesn't count (with tracking off too), so changing case again (or Shift+F3) works from the visible text. Refused in content locked against editing | `tests::revision_checks::tracked_change_case_rejects_back_to_the_original_case`, `tracked_change_case_of_own_insertion_stays_an_insertion`, `tracked_change_case_twice_reads_only_the_live_text`, `tracked_change_case_handles_sharp_s_and_mixed_formatting`, `change_case_refuses_content_locked_against_editing` |
+| Backspace / Delete with whole rows or columns selected | Backspace deletes the rows or columns (Delete Rows / Delete Columns); Delete clears their cells. One selected cell is just that cell, also in a one-row or one-column table: Backspace clears it. A cleared cell is left with one empty paragraph, however many it had, with the formatting of its last paragraph (whose mark ends the cell); a table nested in it goes too (checked against Word 2019 for Windows, #2802). With Track Changes on, Delete still marks the cells' text deleted as before. **Differs:** in a 1×1 table, Select Cell then Backspace removes the table (April Writer has no end-of-row mark to tell the cell from the whole table; the end-of-row caret position is still missing, #1844) | `backspace_deletes_selected_rows_and_delete_clears_them`, `backspace_deletes_selected_columns_and_delete_clears_them`, `backspace_on_one_selected_cell_of_a_one_row_or_one_column_table_clears_it`, `delete_on_whole_cells_leaves_one_empty_paragraph_in_each`; `delete_range` edge cases: `edit::tests::a_range_ending_at_the_end_of_a_cell_that_isnt_the_last_keeps_the_table` and five more (other tables, nested tables, story ends, headers and footnotes, content controls, nesting past the paragraph walk) |
+| Table Layout › Delete Table / Rows / Columns / Cells (tracking on) | like Word deleting a selected table: the cells' text is marked deleted and the table structure stays (April Writer has no tracked row or column deletion, `w:trPr/w:del`, so rows and columns keep their cells too, where Word's Accept removes the rows); text you inserted yourself is just removed; Reject All restores the text. A table, row or column with no text at all (empty, or its deletion already accepted) is removed as with tracking off; one whose text is all already marked deleted is left alone with a message (accept or reject first). Delete Columns leaves a merged cell that also spans a kept column alone (it narrows, keeping its text). A content control locked against deletion, or content locked against editing, refuses the delete with tracking on or off | `tests::revision_checks::tracked_table_delete_marks_the_text_deleted_and_reject_all_restores_it`, `tracked_row_column_and_cell_deletes_mark_their_text_deleted`, `tracked_table_delete_over_tracked_insertions_rejects_back_to_the_original`, `table_deletes_refuse_a_control_locked_against_deletion`, `tracked_delete_table_removes_a_table_with_no_live_text`, `delete_columns_leaves_a_merged_cell_that_keeps_a_column_alone`, `tracked_row_and_column_deletes_over_tracked_changes_reject_back_to_the_original` |
+| Change Case (Shift+F3, Home › Aa) (tracking on) | Word shows no insertion or deletion markup (checked with Formatting markup set to none, so Word may record it as a hidden formatting revision). **Differs:** April Writer records the changed letters as a tracked deletion of the old and insertion of the new, since case isn't a run property a formatting revision could hold; Reject All restores the old case, Accept All keeps the new. Your own tracked insertion is rewritten in place; already-deleted text is left alone and doesn't count (with tracking off too), so changing case again (or Shift+F3) works from the visible text. Refused in content locked against editing | `tests::revision_checks::tracked_change_case_rejects_back_to_the_original_case`, `tracked_change_case_of_own_insertion_stays_an_insertion`, `tracked_change_case_twice_reads_only_the_live_text`, `tracked_change_case_handles_sharp_s_and_mixed_formatting`, `change_case_refuses_content_locked_against_editing` |
 | Unlink Fields (Ctrl+Shift+F9) (tracking on) | not tracked, like Word: the field's result stays as ordinary text. Refused in content locked against editing | `tests::revision_checks::tracked_unlink_keeps_the_result_as_plain_text`, `unlink_refuses_a_field_in_content_locked_against_editing` |
 
 > **Three-column preset update:** 2026-10-15 · `blankThree` headers/footers start the caret in the first of three table cells (#2197). `text.tab` reaches the next cell and `text.insert` edits it through the existing command path. `crates/engine/tests/it/three_column_headers.rs` checks cell navigation, independent formatting, preset/text undo/redo and repeated DOCX save/reopen.
@@ -183,7 +183,7 @@ ideographic space (`autocorrect_finds_the_word_after_a_wide_space`):
   nothing: Word doesn't either. Undoing a TWo INitial CApitals fix adds the word to the INitial
   CAps list (as in Word, checked on the Mac: `TWo ` typed again isn't corrected; same switch rule as First Letter). The first word of a
   paragraph has no word before it, so nothing is added there; Word also left the retyped first
-  word ("hello") lowercase in that paragraph, which WordCraft doesn't (paragraph-level
+  word ("hello") lowercase in that paragraph, which April Writer doesn't (paragraph-level
   suppression, only for the paragraph where the Undo happened: Word capitalises the first word
   of a new paragraph again; a separate follow-up). Word adds nothing in bulleted-list paragraphs; not covered
   (`undoing_a_sentence_capital_adds_a_first_letter_exception`,
@@ -204,14 +204,14 @@ ideographic space (`autocorrect_finds_the_word_after_a_wide_space`):
 - `1/2 1/4 3/4` → `½ ¼ ¾`; `1st 22nd 13th` get superscript suffixes (`ordinals_become_superscript`).
 - With `*Bold* and _italic_ as real formatting` on (`tools.autocorrect {"boldItalic": true}`;
   off by default), `*word*` becomes bold `word` and `_word_` italic `word`, without the marks,
-  when the word is finished ¹. The rest of this item is WordCraft's own rule: the marks may
-  enclose several words; WordCraft converts a span only when the opening mark starts a word and
+  when the word is finished ¹. The rest of this item is April Writer's own rule: the marks may
+  enclose several words; April Writer converts a span only when the opening mark starts a word and
   the text inside holds a letter or digit and does not start or end with a space, so `2*3*`,
   `file_name_` and `*?!*` stay as typed, and so do marks around a picture, field or content
   control. AutoCorrect then goes on with the word without its marks, so `*teh* ` becomes bold
   `The `, and it corrects the first word of a span of several words as it is typed, so
   `*teh end* ` becomes bold `The end `. Undo right after brings the marks
-  back (after Enter, the Enter stays). With Track Changes on, WordCraft converts only marks the
+  back (after Enter, the Enter stays). With Track Changes on, April Writer converts only marks the
   current author typed as tracked insertions, and it converts nothing while formatting is
   limited to the document's styles (`bold_and_italic_marks_become_formatting`,
   `bold_and_italic_marks_stay_as_typed_unless_they_enclose_words`,
@@ -232,7 +232,7 @@ ideographic space (`autocorrect_finds_the_word_after_a_wide_space`):
   untracked, as Insert › Table inserts one
   (`a_tracked_table_line_keeps_its_characters_as_a_deletion`). A line holding a tracked
   deletion stays as it is, so Enter after the deleted characters is a plain Enter. This is
-  WordCraft's own rule.
+  April Writer's own rule.
 - Enter after `---` `===` `***` `___` `~~~` `###` → a bottom border on the paragraph above
   (single, double, dotted, thick, wave, triple) (`border_line_autoformat`). ⌘Z right after brings the
   characters back and removes the border; the Enter stays (one undo step) ¹
@@ -240,7 +240,7 @@ ideographic space (`autocorrect_finds_the_word_after_a_wide_space`):
 - Built-in Heading styles (`tools.autocorrect {"headingStyles": true}`, off by default): Enter
   twice after a line of five or fewer words that does not end with punctuation makes the line
   Heading 1; one or two tabs before it make it Heading 2 or 3, and the tabs are removed ¹
-  (`two_enters_after_a_short_line_make_it_a_heading`). The rest is WordCraft's own rule: the
+  (`two_enters_after_a_short_line_make_it_a_heading`). The rest is April Writer's own rule: the
   line is a Normal paragraph of the main text (not in a list, a table, a header or a text box)
   and ends in a letter or digit; the caret stays in the empty paragraph after the heading; ⌘Z
   right after brings back the tabs and the Normal style, and the second Enter stays
@@ -382,7 +382,7 @@ again.
   and send replacement text. The web build's hidden text field does this whenever its contents
   change other than by adding to the end: Backspace and corrections from phone keyboards, and
   the Chrome caret jump below. The 0.37 desktop bridge can also deliver character- or
-  byte-counted surrounding deletions from the input method. WordCraft erases those characters as Backspace erases a selection, stopping at the
+  byte-counted surrounding deletions from the input method. April Writer erases those characters as Backspace erases a selection, stopping at the
   paragraph's ends, then types the new text. The new text keeps the erased text's formatting
   and never overtypes what follows. Erasing and retyping stay in the open typing undo step, and
   typing after them joins it too (#1480,
@@ -491,7 +491,7 @@ again.
 
 ## How to compare
 
-- WordCraft: the headless `ui_shot` example (no window, no focus) with `UI_SHOT_FULL=1` prints
+- April Writer: the headless `ui_shot` example (no window, no focus) with `UI_SHOT_FULL=1` prints
   the whole `document.inspect`; drive it with `ui.text` / `ui.key` lines so keys take the real
   input path.
 - Word: the machine is shared. Prefer AppleScript that doesn't take focus (open, read

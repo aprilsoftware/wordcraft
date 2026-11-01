@@ -18,18 +18,18 @@ const INVALID_PARAMS: i64 = -32602;
 const INTERNAL_ERROR: i64 = -32603;
 const RESOURCE_NOT_FOUND: i64 = -32002;
 
-const INSTRUCTIONS: &str = "WordCraft is a word processor (a Microsoft Word clone). Every action is a command: find ids and \
+const INSTRUCTIONS: &str = "April Writer is a word processor. Every action is a command: find ids and \
 parameters with list_commands and run them with execute (or several with batch). Positions are \
 {story:\"body\", path:[block,(row,cell,block)...], off:byteOffset}. Typical flow: new_document → type_text \
 \"Hello\" → execute text.newParagraph → execute para.style {style:\"Heading 1\"} → select_text {text:\"Hello\"} → \
-execute format.bold → inspect_document to verify → render_page to look at the result → save {path:\"out.docx\"}. \
-Several documents can be open: new_document and open_document open another one and make it active; \
-list_documents gives their ids, and `doc` on execute, batch and the other document tools works on one \
-without switching.";
+execute format.bold → inspect_document to verify → render_page to look at the result → save_document \
+{path:\"out.docx\"}. Several documents can be open: new_document and open_document open another one \
+and make it active; list_documents gives their ids, and `doc` on execute, batch and the other document \
+tools works on one without switching.";
 
 /// Resource URIs.
-pub const DOC_URI: &str = "wordcraft://document";
-pub const COMMANDS_URI: &str = "wordcraft://commands";
+pub const DOC_URI: &str = "aprilwriter://document";
+pub const COMMANDS_URI: &str = "aprilwriter://commands";
 
 /// Longest request line accepted on stdin.
 pub const MAX_REQUEST_LINE: usize = 1 << 20;
@@ -183,9 +183,9 @@ impl Server {
                 Ok(json!({
                     "protocolVersion": version,
                     "capabilities": {"tools": {}, "resources": {}},
-                    "serverInfo": {"name": "wordcraft", "title": "WordCraft", "version": env!("CARGO_PKG_VERSION"), "websiteUrl": "https://getartcraft.com/apps/wordcraft"},
+                    "serverInfo": {"name": "aprilwriter", "title": "April Writer", "version": env!("CARGO_PKG_VERSION"), "websiteUrl": "https://www.aprilsoftware.com"},
                     "instructions": format!(
-                        "{INSTRUCTIONS} Backend: {}. Community: https://discord.gg/artcraft · https://getartcraft.com/apps/wordcraft · https://github.com/storytold/wordcraft",
+                        "{INSTRUCTIONS} Backend: {}. Support: contact@aprilsoftware.com. Source: https://github.com/aprilsoftware/wordcraft",
                         self.backend.describe()
                     ),
                 }))

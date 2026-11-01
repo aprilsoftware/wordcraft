@@ -1,8 +1,8 @@
-//! WordCraft's MCP server (Model Context Protocol, JSON-RPC 2.0 over stdio).
+//! April Writer's MCP server (Model Context Protocol, JSON-RPC 2.0 over stdio).
 //!
 //! Two backends: [`Headless`] runs an in-process editing session (no window); [`backend::Remote`]
-//! talks to a running WordCraft app through its control channel (`wordcraft --control PORT`), so
-//! agents can also click, type and screenshot the real UI.
+//! talks to a running April Writer app through its control channel (`aprilwriter --control PORT`),
+//! so agents can also click, type and screenshot the real UI.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod backend;
@@ -19,7 +19,7 @@ use wordcraft_engine::Session;
 use wordcraft_engine::file_access::{self, AutomationRoots};
 
 /// Methods that need the desktop app.
-pub const NEEDS_APP: &str = "needs the desktop app: start `wordcraft --control 7981` and run `wordcraft-cli mcp --connect 127.0.0.1:7981`";
+pub const NEEDS_APP: &str = "needs the desktop app: start `aprilwriter --control 7981` and run `aprilwriter-cli mcp --connect 127.0.0.1:7981`";
 
 /// An in-process session.
 pub struct Headless {
@@ -29,7 +29,7 @@ pub struct Headless {
 
 impl Headless {
     /// Confine every file the session's commands read and write to `roots`
-    /// (`wordcraft-cli mcp --automation-read-root … --automation-write-root …`).
+    /// (`aprilwriter-cli mcp --automation-read-root … --automation-write-root …`).
     pub fn with_automation_roots(mut self, roots: Option<Arc<AutomationRoots>>) -> Self {
         self.roots = roots;
         self

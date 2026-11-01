@@ -7,7 +7,7 @@ use wordcraft_ui_egui::{UiState, WordApp};
 
 /// The `localStorage` key.
 #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
-pub const KEY: &str = "wordcraft.ui";
+pub const KEY: &str = "aprilwriter.ui";
 /// Largest stored value read back (`localStorage` holds about 5 MB per site).
 const MAX_STORED: usize = 4 << 20;
 
@@ -76,6 +76,11 @@ mod tests {
 
     fn app() -> WordApp {
         WordApp::new(wordcraft_engine::Session::new(wordcraft_engine::sample::sample_document()), Services::default())
+    }
+
+    #[test]
+    fn storage_uses_april_writer_identity() {
+        assert_eq!(KEY, "aprilwriter.ui");
     }
 
     /// A host page's name for the user signs the visit but isn't stored; a name the user then

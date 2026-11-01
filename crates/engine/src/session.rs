@@ -237,6 +237,10 @@ pub struct Session {
 }
 
 impl Session {
+    /// Default identity for comments and tracked changes in a new April Writer profile.
+    pub const DEFAULT_AUTHOR: &str = "April Writer User";
+    /// Default persisted by pre-identity April Writer experiments; migrated only inside the April profile.
+    pub const LEGACY_DEFAULT_AUTHOR: &str = "WordCraft User";
     /// File name of the persisted custom dictionary inside the settings folder.
     pub const USER_DICT_FILE: &str = "custom-dictionary.txt";
 }

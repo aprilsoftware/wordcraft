@@ -1,23 +1,21 @@
 #!/usr/bin/env bash
-# Build and package WordCraft for Linux (<arch> is x86_64 or aarch64, or riscv64 when cross-compiling):
+# Build and package April Writer for Linux (<arch> is x86_64 or aarch64, or riscv64 when cross-compiling):
 #
-#   $DIST/wordcraft-<version>-linux-<arch>.AppImage  any distro with glibc >= the build host's
-#   $DIST/wordcraft-<version>-linux-<arch>.AppImage.zsync  delta updates (needs zsyncmake)
-#   $DIST/wordcraft-<version>-linux-<arch>.deb       Debian, Ubuntu, Mint, Pop!_OS, ...
-#   $DIST/wordcraft-<version>-linux-<arch>.rpm       Fedora, openSUSE, RHEL, ...
-#   $DIST/wordcraft-<version>-linux-<arch>.tar.gz    plain FHS-style tree (bin/, share/)
+#   $DIST/aprilwriter-<version>-linux-<arch>.AppImage  any distro with glibc >= the build host's
+#   $DIST/aprilwriter-<version>-linux-<arch>.deb       Debian, Ubuntu, Mint, Pop!_OS, ...
+#   $DIST/aprilwriter-<version>-linux-<arch>.rpm       Fedora, openSUSE, RHEL, ...
+#   $DIST/aprilwriter-<version>-linux-<arch>.tar.gz    plain FHS-style tree (bin/, share/)
 #
 # Usage: packaging/linux/package.sh [--skip-build] [--formats "appimage deb rpm tar"]
 #
 # Needs: cargo; nfpm for deb/rpm (https://nfpm.goreleaser.com); appimagetool for the AppImage
 # (downloaded into $CARGO_TARGET_DIR if missing). Build on an old distro (CI: Ubuntu 22.04,
 # glibc 2.35) so the binaries run on newer ones. Optional: desktop-file-validate, appstreamcli,
-# zsyncmake (the zsync package) for the AppImage's .zsync.
 set -euo pipefail
 # shellcheck source=../env.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
 HERE="$ROOT/packaging/linux"
-APP_ID=ai.storyteller.wordcraft
+APP_ID=com.aprilsoftware.aprilwriter
 
 SKIP_BUILD=0
 FORMATS="appimage deb rpm tar"
@@ -37,10 +35,10 @@ case "$ARCH" in
   aarch64 | arm64) ARCH=aarch64; DEB_ARCH=arm64 ;;
   *) echo "unsupported architecture $ARCH" >&2; exit 2 ;;
 esac
-export WORDCRAFT_MAINTAINER="${WORDCRAFT_MAINTAINER:-WordCraft maintainers <wordcraft@storyteller.ai>}"
-BASENAME="wordcraft-$VERSION-linux-$ARCH"
+export APRILWRITER_MAINTAINER="${APRILWRITER_MAINTAINER:-April Software S.A. <contact@aprilsoftware.com>}"
+BASENAME="aprilwriter-$VERSION-linux-$ARCH"
 
-echo "==> WordCraft $VERSION for Linux $ARCH ($FORMATS)"
+echo "==> April Writer $VERSION for Linux $ARCH ($FORMATS)"
 
 if [[ "$SKIP_BUILD" = 0 ]]; then
   if [[ -n "${CROSS_TARGET:-}" ]]; then
@@ -55,18 +53,18 @@ STAGE="$WORK/root"
 rm -rf "$WORK"
 
 # ---- stage an FHS tree (shared by every format) -------------------------------------------------
-install -Dm755 "$BIN/wordcraft" "$STAGE/usr/bin/wordcraft"
-install -Dm755 "$BIN/wordcraft-cli" "$STAGE/usr/bin/wordcraft-cli"
-"${CROSS_COMPILE:-}strip" "$STAGE/usr/bin/wordcraft" "$STAGE/usr/bin/wordcraft-cli" 2>/dev/null || true
+install -Dm755 "$BIN/aprilwriter" "$STAGE/usr/bin/aprilwriter"
+install -Dm755 "$BIN/aprilwriter-cli" "$STAGE/usr/bin/aprilwriter-cli"
+"${CROSS_COMPILE:-}strip" "$STAGE/usr/bin/aprilwriter" "$STAGE/usr/bin/aprilwriter-cli" 2>/dev/null || true
 install -Dm644 "$HERE/$APP_ID.desktop" "$STAGE/usr/share/applications/$APP_ID.desktop"
 install -Dm644 "$HERE/$APP_ID.mime.xml" "$STAGE/usr/share/mime/packages/$APP_ID.xml"
 mkdir -p "$STAGE/usr/share/metainfo"
-sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$WORDCRAFT_BUILD_DATE/g" \
+sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$APRILWRITER_BUILD_DATE/g" \
   "$HERE/$APP_ID.metainfo.xml.in" >"$STAGE/usr/share/metainfo/$APP_ID.metainfo.xml"
 mkdir -p "$STAGE/usr/share/icons"
 cp -R "$ROOT/assets/app-icon/hicolor" "$STAGE/usr/share/icons/"
-mkdir -p "$STAGE/usr/share/doc/wordcraft"
-copy_docs "$STAGE/usr/share/doc/wordcraft"
+mkdir -p "$STAGE/usr/share/doc/aprilwriter"
+copy_docs "$STAGE/usr/share/doc/aprilwriter"
 
 if command -v desktop-file-validate >/dev/null; then
   desktop-file-validate "$STAGE/usr/share/applications/$APP_ID.desktop"
@@ -129,9 +127,9 @@ if has appimage; then
     printf '%s  %s\n' "$expected_sha" "$target" | sha256sum -c -
     return 0
   }
-  APPDIR="$WORK/WordCraft.AppDir"
+  APPDIR="$WORK/AprilWriter.AppDir"
   cp -R "$STAGE" "$APPDIR"
-  ln -s usr/bin/wordcraft "$APPDIR/AppRun"
+  ln -s usr/bin/aprilwriter "$APPDIR/AppRun"
   cp "$HERE/$APP_ID.desktop" "$APPDIR/$APP_ID.desktop"
   cp "$ROOT/assets/app-icon/hicolor/256x256/apps/$APP_ID.png" "$APPDIR/$APP_ID.png"
   ln -s "$APP_ID.png" "$APPDIR/.DirIcon"
@@ -155,31 +153,17 @@ if has appimage; then
   APPDIR="$(cd "$APPDIR" && pwd)"
   TOOL="$(cd "$(dirname "$TOOL")" && pwd)/$(basename "$TOOL")"
   RUNTIME="$(cd "$(dirname "$RUNTIME")" && pwd)/$(basename "$RUNTIME")"
-  # A .zsync left by an earlier run would hide a missing zsyncmake and describe another file.
-  rm -f "$OUT.zsync"
-  # Update information: AppImageUpdate, AppImageLauncher and the like read it from the file and
-  # fetch only the blocks that changed in a newer release, through the .zsync published next to
-  # each AppImage on GitHub Releases. `latest` is the newest published release that is not a
-  # pre-release. A fork's builds point at its own releases through GITHUB_REPOSITORY.
-  REPO="${GITHUB_REPOSITORY:-storytold/wordcraft}"
-  UPDATE_INFO="gh-releases-zsync|${REPO%%/*}|${REPO#*/}|latest|wordcraft-*-linux-$ARCH.AppImage.zsync"
   # Extract-and-run: works without FUSE (containers, CI). The output embeds the pinned static
-  # runtime, so users don't need libfuse2 either. With zsyncmake on the host (CI installs the zsync
-  # package) appimagetool also writes the .zsync, into its working directory, hence the cd.
+  # runtime, so users don't need libfuse2 either.
   (cd "$DIST" && ARCH="$ARCH" APPIMAGE_EXTRACT_AND_RUN=1 "$TOOL" --no-appstream \
-    --runtime-file "$RUNTIME" -u "$UPDATE_INFO" "$APPDIR" "$OUT")
+    --runtime-file "$RUNTIME" "$APPDIR" "$OUT")
   echo "wrote $OUT"
-  if [[ -s "$OUT.zsync" ]]; then
-    echo "wrote $OUT.zsync"
-  else
-    warn "zsyncmake not found, so $OUT.zsync was not written; AppImage delta updates need it"
-  fi
 fi
 
 if [[ -z "${CROSS_TARGET:-}" ]]; then
-  "$STAGE/usr/bin/wordcraft-cli" --version
+  "$STAGE/usr/bin/aprilwriter-cli" --version
 elif [[ -n "${EMULATOR:-}" ]]; then
-  "$EMULATOR" "$STAGE/usr/bin/wordcraft-cli" --version
+  "$EMULATOR" "$STAGE/usr/bin/aprilwriter-cli" --version
 fi
 echo "==> done"
 ls -lh "$DIST"

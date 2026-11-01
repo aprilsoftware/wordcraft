@@ -1,6 +1,6 @@
 # Local document recovery
 
-Desktop WordCraft periodically keeps a local copy of unsaved work, including new drafts.
+April Writer periodically keeps a local copy of unsaved work, including new drafts.
 File › Recover lists available copies. The page opens at startup when copies are found,
 unless a document was explicitly created or opened before the startup scan completed.
 In particular, a window launched for New/Open keeps the requested document visible;
@@ -37,9 +37,9 @@ unsaved documents leaves a copy of each, and the next start lists them all.
 
 ## Storage and timing
 
-Copies live in `recovery/` under the app's profile folder. `WORDCRAFT_PROFILE_DIR` selects a
+Copies live in `recovery/` under the app's profile folder. `APRILWRITER_PROFILE_DIR` selects a
 separate profile for isolated runs, including preferences, logs and control keys.
-`WORDCRAFT_NO_PREFS` disables recovery as well as preferences. Headless engine/CLI sessions
+`APRILWRITER_NO_PREFS` disables recovery as well as preferences. Headless engine/CLI sessions
 and the browser do not create recovery files implicitly.
 
 One worker thread and one store serve every open document, so a record is locked once per

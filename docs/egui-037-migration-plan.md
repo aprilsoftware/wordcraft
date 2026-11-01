@@ -1,6 +1,8 @@
-# WordCraft: egui 0.37 migration plan
+# Archived WordCraft egui 0.37 migration plan
 
-**Status:** current-main reconciliation through `b4da59f0c38b506c36629b1d812ad7c0519fc238` passed all eight mandatory CI stages on 2026-10-25: 4,270 passing test executions, zero failures and 4 ignored (`egui037-wordcraft-main-refresh-ci-20261025-0603`). This includes main's encrypted-DOCX integrity requirement and selected-paragraph-mark highlight behavior. The dependency pins and lockfile are unchanged. A fresh review verified that the merge preserves the IME documentation and upstream fixes. Earlier counts and source snapshots below are historical.
+> **April Writer status:** This document preserves an upstream WordCraft migration record. Its hashes, paths, dependency pins, CI results and platform statements apply only to the recorded checkout and do not qualify April Writer. April Office owns separate exact-commit qualification and publication.
+
+**Archived upstream status:** current-main reconciliation through `b4da59f0c38b506c36629b1d812ad7c0519fc238` passed all eight mandatory CI stages on 2026-10-25: 4,270 passing test executions, zero failures and 4 ignored (`egui037-wordcraft-main-refresh-ci-20261025-0603`). This includes main's encrypted-DOCX integrity requirement and selected-paragraph-mark highlight behavior. The dependency pins and lockfile are unchanged. A fresh review verified that the merge preserves the IME documentation and upstream fixes. Earlier counts and source snapshots below are historical.
 
 Read-only comment balloons now consume the explicit `AlignedGalley` result from craft-ui at
 `25da1314d443171b4adeaad2cd9454b273f35c6f`: height comes from the requested reading area,
@@ -117,7 +119,7 @@ strings look uniform.
 - Performance probe: `crates/ui-egui/examples/perf_probe.rs` (open, typing, wheel/trackpad
   scrolling, zoom, ribbon tabs, resize, accept-all; returns medians, p95 and max, not p99).
 - Large-table benchmark: `crates/ui-egui/src/tests/perf.rs` (`big_table_scroll_bench`, ignored,
-  2000x8 synthetic table by default, `WORDCRAFT_BENCH_DOCX` override).
+  2000x8 synthetic table by default, `APRILWRITER_BENCH_DOCX` override).
 - Control protocol: `crates/ui-egui/src/control.rs`, documented in `docs/control-protocol.md`.
   `ui.screenshot`/`ui.render` reply shapes, request ids, timeouts and paths are public contracts.
 
@@ -974,9 +976,9 @@ Proposed `task.py run` command bodies (the parent supplies task/job/evidence):
 ### 7.2 Native Linux
 
 Run the release app with `--sample --control 7981` and a temporary settings dir
-(`WORDCRAFT_NO_PREFS` for agent runs where appropriate). Use `ui.screenshot`, `ui.inspect`,
+(`APRILWRITER_NO_PREFS` for agent runs where appropriate). Use `ui.screenshot`, `ui.inspect`,
 `ui.click`, `ui.key`, `ui.text`, `ui.wheel`, save/open. Observe X11 and a real Wayland
-compositor (record compositor identity); use `WORDCRAFT_WAYLAND=1` where needed. Check regular
+compositor (record compositor identity); use `APRILWRITER_WAYLAND=1` where needed. Check regular
 clipboard, middle-click autoscroll (no PRIMARY paste), file drop, native IME and
 DeleteSurroundingBytes/outgoing surrounding text, real Russian/Arabic/Hebrew keyboard layouts,
 mixed DPI, window resize, a forced hidden screenshot pass, screenshot timeout/cancel and page
